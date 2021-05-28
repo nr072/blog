@@ -1,0 +1,88 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Coding Harder</title>
+    <link>https://example.com/blog/</link>
+    <description>Recent content on Coding Harder</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 06 May 2021 06:00:00 +0600</lastBuildDate>
+    
+        <atom:link href="https://example.com/blog/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Building a to-do list app (part 1)</title>
+      <link>https://example.com/blog/posts/projects/mantle/building-a-todo-list-app-part-1/</link>
+      <pubDate>Thu, 06 May 2021 06:00:00 +0600</pubDate>
+      
+      <guid>https://example.com/blog/posts/projects/mantle/building-a-todo-list-app-part-1/</guid>
+      <description>&lt;p&gt;Since most of my previous works have been either too simple or too customized (for personal use), I&amp;rsquo;m starting this project with a wider audience in mind. The goal is to create an interactive to-do list app. Users will be able to see &amp;ldquo;tasks&amp;rdquo;, set times, and add, edit, and delete tasks and so on. You know the type.&lt;/p&gt;
+&lt;p&gt;This is still simplistic and driven by personal needs. And it&amp;rsquo;s too common an idea. But it&amp;rsquo;s better to start with something easy than losing motivation halfway, before anything significant is done.&lt;/p&gt;
+&lt;h1 id=&#34;technologies&#34;&gt;Technologies&lt;/h1&gt;
+&lt;p&gt;I&amp;rsquo;m calling this app &amp;ldquo;Mantle&amp;rdquo;. It&amp;rsquo;ll be built with Laravel and Vue.&lt;/p&gt;
+&lt;p&gt;The complete list, as of now, is this:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/laravel/laravel&#34;target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Laravel&lt;/a&gt;
+ (for the back-end API)&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/vuejs/vue&#34;target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Vue.js&lt;/a&gt;
+ (for data binding and manipulation on the front-end)&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/beyondcode/laravel-websockets&#34;target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;laravel-websockets&lt;/a&gt;
+ (for sending real-time updates to the front-end)&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/laravel/echo&#34;target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Laravel Echo&lt;/a&gt;
+ (for receiving the real-time data)&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/jgthms/bulma&#34;target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;Bulma&lt;/a&gt;
+ (CSS framework)&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Laravel is there only for the API. I&amp;rsquo;ll probably never use more than a handful of routes. I&amp;rsquo;ll be using whatever comes by default with Laravel 8. Don&amp;rsquo;t think I&amp;rsquo;ll need the famous Debugbar even. The database will be MySQL.&lt;/p&gt;
+&lt;p&gt;I&amp;rsquo;ll be using Vue 2. The &lt;a href=&#34;https://github.com/vuejs/vue-loader&#34;target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;&amp;ldquo;vue-loader&amp;rdquo; package&lt;/a&gt;
+ will be needed because of Single-File Components. But no &amp;ldquo;vue-router&amp;rdquo; or &amp;ldquo;vuex&amp;rdquo;. For now, Mantle will be done with just plain, old data binding.&lt;/p&gt;
+&lt;p&gt;&amp;ldquo;laravel-websockets&amp;rdquo; will be replacing Pusher. (It&amp;rsquo;s always seemed a little ridiculous to me to send data somewhere else to get it to the user. It&amp;rsquo;s like if you want to go from A to B, you need to go from A to C first and then from C to B. But things often seem obvious only in retrospect.)&lt;/p&gt;
+&lt;p&gt;I&amp;rsquo;m new to using WebSocket. For those who don&amp;rsquo;t know what it does: It&amp;rsquo;s used to keep a permanent connection with the server open, as opposed to HTTP requests that can only be sent from the client. This is great, because until the client (a browser, for example) has sent a request to the server, it won&amp;rsquo;t know even if the server&amp;rsquo;s been blown up. So, in case of real-time update, for example, you&amp;rsquo;d have to send requests to the server either continuously or at a specific interval. Both of these have their own problems. But in a WebSocket connection, the server can send data to the client &lt;em&gt;on its own&lt;/em&gt;! The two most common uses of WebSocket probably are chatting apps and notifications.&lt;/p&gt;
+&lt;p&gt;And while a WebSocket server can send data to the client, the client needs to receive it. Echo is a JS library that does just that. Echo listens to messages from the WebSocket server and receives the broadcast data.&lt;/p&gt;
+&lt;p&gt;I&amp;rsquo;m using Bulma just because I&amp;rsquo;ve never used it before and I don&amp;rsquo;t trust myself with Tailwind yet.&lt;/p&gt;
+&lt;h1 id=&#34;features&#34;&gt;Features&lt;/h1&gt;
+&lt;p&gt;Mantle&amp;rsquo;s features will be simple. A user will be able to:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;see a list of &amp;ldquo;tasks&amp;rdquo;, along with their due times,&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;edit task names,&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;edit and remove due times,&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;add and remove tasks,&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;mark tasks as &amp;ldquo;done&amp;rdquo; or &amp;ldquo;not done&amp;rdquo;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Currently, for the UI, I&amp;rsquo;m thinking card-like containers showing tasks. There will be a hierarchy where tasks will be assinged to something from a higher tier, and they&amp;rsquo;ll be assigned to another upper tier in turn. Kind of like: board -&amp;gt; card -&amp;gt; task.&lt;/p&gt;
+&lt;p&gt;Mantle&amp;rsquo;s UI will resemble Slack (or other similar apps) a lot. In fact, I&amp;rsquo;ll try not to make it an outright Slack clone. There will be similarities in features, but my personal preferences will have influence too.&lt;/p&gt;
+&lt;p&gt;The due time feature is a good example of this. For some time now, I&amp;rsquo;ve been using a makeshift &amp;ldquo;task list&amp;rdquo;, using only JS for some of my daily errands. It was made just for that reason: to list the things I&amp;rsquo;m going to do over a day, and to set timers accordingly. So, I&amp;rsquo;d create a task and set a time, which would start ticking and show a timer in &amp;ldquo;hh-mm&amp;rdquo; format.&lt;/p&gt;
+&lt;p&gt;That was the seed of Mantle, I think.&lt;/p&gt;
+&lt;p&gt;Anyway, more features will be added slowly. Mantle will always look like a Slack clone, and it will always have features I personally like. My aim here is to practice building something for common use, with emphasis on &amp;ldquo;practice&amp;rdquo;.&lt;/p&gt;
+&lt;h1 id=&#34;note&#34;&gt;Note&lt;/h1&gt;
+&lt;p&gt;These posts won&amp;rsquo;t be regular. I&amp;rsquo;m writing these mainly to record my thought process during the development. I started Mantle without much planning and I intend to improvise all the way. Since writing things down often requires organizing your thoughts, these will help me look at the things I&amp;rsquo;ve done and maybe think ahead a bit too.&lt;/p&gt;
+&lt;p&gt;The ulterior motive is to look back, some years later, at how I built things and what I thought while building them.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;Disclaimer:&lt;/strong&gt; I won&amp;rsquo;t explain all the steps of building Mantle. So, don&amp;rsquo;t expect too much code and technical explanations. (There&amp;rsquo;s loads like that (and better) out there.) In fact, most code snippets I include are likely to be incomplete. And even the writing might not be all that coherent. (You&amp;rsquo;ll often think I forgot to write something in the middle.)&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;But Mantle will be open-source, and all the code will be available &lt;a href=&#34;https://github.com/nr072/mantle&#34;target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;on GitHub&lt;/a&gt;
+. So, feel free to check it out there.&lt;/p&gt;
+&lt;p&gt;Suggestions are always welcome.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

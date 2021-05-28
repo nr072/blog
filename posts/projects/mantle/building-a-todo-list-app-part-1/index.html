@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en"><meta charset="utf-8"><meta name="generator" content="Hugo 0.83.1" /><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark"><title>Building a to-do list app (part 1)&nbsp;&ndash;&nbsp;Coding Harder</title><link rel="stylesheet" href="/blog/css/core.min.5b04986dee02f0d1305e9389c680a2eed3cea02c04640ac17d6643bacbc4b765d77e2b6e6b63b862d55560f00c92e9c0.css" integrity="sha384-WwSYbe4C8NEwXpOJxoCi7tPOoCwEZArBfWZDusvEt2XXfitua2O4YtVVYPAMkunA"><meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Building a to-do list app (part 1)" /><body><section id="header">
+    <div class="header wrap"><span class="header left-side"><a class="site home" href="/blog/"><span class="site name">Coding Harder</span></a></span>
+        <span class="header right-side"></span></div></section><section id="content"><div class="article-container"><section class="article header">
+    <h1 class="article title">Building a to-do list app (part 1)</h1><p class="article date">2021-05-06</p></section><article class="article markdown-body"><p>Since most of my previous works have been either too simple or too customized (for personal use), I&rsquo;m starting this project with a wider audience in mind. The goal is to create an interactive to-do list app. Users will be able to see &ldquo;tasks&rdquo;, set times, and add, edit, and delete tasks and so on. You know the type.</p>
+<p>This is still simplistic and driven by personal needs. And it&rsquo;s too common an idea. But it&rsquo;s better to start with something easy than losing motivation halfway, before anything significant is done.</p>
+<h1 id="technologies">Technologies</h1>
+<p>I&rsquo;m calling this app &ldquo;Mantle&rdquo;. It&rsquo;ll be built with Laravel and Vue.</p>
+<p>The complete list, as of now, is this:</p>
+<ul>
+<li>
+<p><a href="https://github.com/laravel/laravel"target="_blank" rel="noopener noreferrer">Laravel</a>
+ (for the back-end API)</p>
+</li>
+<li>
+<p><a href="https://github.com/vuejs/vue"target="_blank" rel="noopener noreferrer">Vue.js</a>
+ (for data binding and manipulation on the front-end)</p>
+</li>
+<li>
+<p><a href="https://github.com/beyondcode/laravel-websockets"target="_blank" rel="noopener noreferrer">laravel-websockets</a>
+ (for sending real-time updates to the front-end)</p>
+</li>
+<li>
+<p><a href="https://github.com/laravel/echo"target="_blank" rel="noopener noreferrer">Laravel Echo</a>
+ (for receiving the real-time data)</p>
+</li>
+<li>
+<p><a href="https://github.com/jgthms/bulma"target="_blank" rel="noopener noreferrer">Bulma</a>
+ (CSS framework)</p>
+</li>
+</ul>
+<p>Laravel is there only for the API. I&rsquo;ll probably never use more than a handful of routes. I&rsquo;ll be using whatever comes by default with Laravel 8. Don&rsquo;t think I&rsquo;ll need the famous Debugbar even. The database will be MySQL.</p>
+<p>I&rsquo;ll be using Vue 2. The <a href="https://github.com/vuejs/vue-loader"target="_blank" rel="noopener noreferrer">&ldquo;vue-loader&rdquo; package</a>
+ will be needed because of Single-File Components. But no &ldquo;vue-router&rdquo; or &ldquo;vuex&rdquo;. For now, Mantle will be done with just plain, old data binding.</p>
+<p>&ldquo;laravel-websockets&rdquo; will be replacing Pusher. (It&rsquo;s always seemed a little ridiculous to me to send data somewhere else to get it to the user. It&rsquo;s like if you want to go from A to B, you need to go from A to C first and then from C to B. But things often seem obvious only in retrospect.)</p>
+<p>I&rsquo;m new to using WebSocket. For those who don&rsquo;t know what it does: It&rsquo;s used to keep a permanent connection with the server open, as opposed to HTTP requests that can only be sent from the client. This is great, because until the client (a browser, for example) has sent a request to the server, it won&rsquo;t know even if the server&rsquo;s been blown up. So, in case of real-time update, for example, you&rsquo;d have to send requests to the server either continuously or at a specific interval. Both of these have their own problems. But in a WebSocket connection, the server can send data to the client <em>on its own</em>! The two most common uses of WebSocket probably are chatting apps and notifications.</p>
+<p>And while a WebSocket server can send data to the client, the client needs to receive it. Echo is a JS library that does just that. Echo listens to messages from the WebSocket server and receives the broadcast data.</p>
+<p>I&rsquo;m using Bulma just because I&rsquo;ve never used it before and I don&rsquo;t trust myself with Tailwind yet.</p>
+<h1 id="features">Features</h1>
+<p>Mantle&rsquo;s features will be simple. A user will be able to:</p>
+<ul>
+<li>
+<p>see a list of &ldquo;tasks&rdquo;, along with their due times,</p>
+</li>
+<li>
+<p>edit task names,</p>
+</li>
+<li>
+<p>edit and remove due times,</p>
+</li>
+<li>
+<p>add and remove tasks,</p>
+</li>
+<li>
+<p>mark tasks as &ldquo;done&rdquo; or &ldquo;not done&rdquo;.</p>
+</li>
+</ul>
+<p>Currently, for the UI, I&rsquo;m thinking card-like containers showing tasks. There will be a hierarchy where tasks will be assinged to something from a higher tier, and they&rsquo;ll be assigned to another upper tier in turn. Kind of like: board -&gt; card -&gt; task.</p>
+<p>Mantle&rsquo;s UI will resemble Slack (or other similar apps) a lot. In fact, I&rsquo;ll try not to make it an outright Slack clone. There will be similarities in features, but my personal preferences will have influence too.</p>
+<p>The due time feature is a good example of this. For some time now, I&rsquo;ve been using a makeshift &ldquo;task list&rdquo;, using only JS for some of my daily errands. It was made just for that reason: to list the things I&rsquo;m going to do over a day, and to set timers accordingly. So, I&rsquo;d create a task and set a time, which would start ticking and show a timer in &ldquo;hh-mm&rdquo; format.</p>
+<p>That was the seed of Mantle, I think.</p>
+<p>Anyway, more features will be added slowly. Mantle will always look like a Slack clone, and it will always have features I personally like. My aim here is to practice building something for common use, with emphasis on &ldquo;practice&rdquo;.</p>
+<h1 id="note">Note</h1>
+<p>These posts won&rsquo;t be regular. I&rsquo;m writing these mainly to record my thought process during the development. I started Mantle without much planning and I intend to improvise all the way. Since writing things down often requires organizing your thoughts, these will help me look at the things I&rsquo;ve done and maybe think ahead a bit too.</p>
+<p>The ulterior motive is to look back, some years later, at how I built things and what I thought while building them.</p>
+<p><em><strong>Disclaimer:</strong> I won&rsquo;t explain all the steps of building Mantle. So, don&rsquo;t expect too much code and technical explanations. (There&rsquo;s loads like that (and better) out there.) In fact, most code snippets I include are likely to be incomplete. And even the writing might not be all that coherent. (You&rsquo;ll often think I forgot to write something in the middle.)</em></p>
+<p>But Mantle will be open-source, and all the code will be available <a href="https://github.com/nr072/mantle"target="_blank" rel="noopener noreferrer">on GitHub</a>
+. So, feel free to check it out there.</p>
+<p>Suggestions are always welcome.</p>
+</article>
+</div>
+<div class="article bottom"></div></section><section id="footer"><div class="footer-wrap">
+    <p class="copyright">Coding Harder</p>
+    <p class="powerby"><span>Powered&nbsp;by&nbsp;</span><a href="https://gohugo.io" 
+        target="_blank" rel="noopener noreferrer">Hugo</a><span>&nbsp;&amp;&nbsp;</span><a href="https://themes.gohugo.io/hugo-notepadium/" 
+        target="_blank" rel="noopener noreferrer">Notepadium</a></p></div>
+</section></body>
+
+</html>
