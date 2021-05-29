@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en"><meta charset="utf-8"><meta name="generator" content="Hugo 0.83.1" /><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark"><title>Building a to-do list app (part 4)&nbsp;&ndash;&nbsp;Coding Harder</title><link rel="stylesheet" href="/blog/css/core.min.5b04986dee02f0d1305e9389c680a2eed3cea02c04640ac17d6643bacbc4b765d77e2b6e6b63b862d55560f00c92e9c0.css" integrity="sha384-WwSYbe4C8NEwXpOJxoCi7tPOoCwEZArBfWZDusvEt2XXfitua2O4YtVVYPAMkunA"><meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Building a to-do list app (part 4)" /><body><section id="header">
+    <div class="header wrap"><span class="header left-side"><a class="site home" href="/blog/"><span class="site name">Coding Harder</span></a></span>
+        <span class="header right-side"></span></div></section><section id="content"><div class="article-container"><section class="article header">
+    <h1 class="article title">Building a to-do list app (part 4)</h1><p class="article date">2021-05-13</p></section><article class="article markdown-body"><h2 id="reusing-the-taskeditor-component">Reusing the <code>TaskEditor</code> component</h2>
+<p>The edit section for tasks and the section for adding a new tasks has lots of similarities. I decided to use the <code>TaskEditor</code> component for both. The main difference, in terms of passing data, is that task adders don&rsquo;t get existing task name or due time.</p>
+<table>
+<thead>
+<tr>
+<th>Data that may be passed</th>
+<th style="text-align:center">To task editor</th>
+<th style="text-align:center">To task adder</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Min of new due time range</td>
+<td style="text-align:center">Yes</td>
+<td style="text-align:center">Yes</td>
+</tr>
+<tr>
+<td>Max of new due time range</td>
+<td style="text-align:center">Yes</td>
+<td style="text-align:center">Yes</td>
+</tr>
+<tr>
+<td>Existing task name</td>
+<td style="text-align:center">Yes</td>
+<td style="text-align:center">No</td>
+</tr>
+<tr>
+<td>Existing due time</td>
+<td style="text-align:center">Yes</td>
+<td style="text-align:center">No</td>
+</tr>
+</tbody>
+</table>
+<p>A <a href="https://vuejs.org/v2/guide/components-edge-cases.html#Accessing-Child-Component-Instances-amp-Child-Elements"target="_blank" rel="noopener noreferrer"><code>ref</code> attribute</a>
+ is needed in both to focus the input field when the adder/editor is revealed:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#a6e22e">showEditSection</span>() {
+    <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">isEditing</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
+    <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">$nextTick</span>(() =&gt; {
+        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">$refs</span>.<span style="color:#a6e22e">taskEditorComp</span>.<span style="color:#a6e22e">$refs</span>.<span style="color:#a6e22e">newNameInput</span>.<span style="color:#a6e22e">focus</span>();
+    });
+},
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#a6e22e">showAdderSection</span>() {
+    <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">isAddingTask</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
+    <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">$nextTick</span>(() =&gt; {
+        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">$refs</span>.<span style="color:#a6e22e">taskAdderComp</span>.<span style="color:#a6e22e">$refs</span>.<span style="color:#a6e22e">newNameInput</span>.<span style="color:#a6e22e">focus</span>();
+    });
+},
+</code></pre></div><h2 id="websocket">WebSocket</h2>
+<p>We have three main parties here: the Laravel server, the WebSocket server, and the front-end.</p>
+<p>So, this is how things work.</p>
+<p>The Laravel server is always running. In localhost, you run it manually with the <code>php artisan serve</code> command. And a Laravel app is usually automatically served on (and by) a hosting. What more is needed is a WebSocket server which needs to be constantly running as well. You run that with the <code>php artisan websockets:serve</code> command in the local environment. (<a href="https://beyondco.de/docs/laravel-websockets/basic-usage/starting#keeping-the-socket-server-running-with-supervisord"target="_blank" rel="noopener noreferrer">It&rsquo;s different</a>
+ for production.)</p>
+<p>Now, if the Laravel back-end wants to let the front-end know about something, it can inform the WebSocket server and <em>that</em> can send data to the front-end.</p>
+<p>But the front-end must have some arrangement for <em>receiving</em> the data. That&rsquo;s where Echo comes in. You set up a listener with Echo that, well, listens to any message/data from the WebSocket server.</p>
+<p>And that&rsquo;s the gist of it, really.</p>
+<p>Here&rsquo;s a simplified representation:</p>
+<pre><code>                                                            Front-end
+Laravel server             WebSocket server                  Echo  |
+      |                            |                          |    |
+      |                            |     Starts connection    |    |
+      |                            |&lt;-------------------------|    |
+      |                            |     &amp; keeps listening    |    |
+      |                            |                          |    |
+      |&lt;--- Makes some change -------------------------------------|
+      |                            |                          |    |
+      |--- Tells about change ----&gt;|                          |    |
+      |                            |                          |    |
+      |                            |    Sends data without    |    |
+      |                            |-------------------------&gt;|    |
+      |                            |   action from front-end  |    |
+      |                            |                          |    |
+</code></pre><p>Of course, there are technical details in every step.</p>
+<p>For example, the Laravel server lets the WebSocket server know something happened by broadcasting &ldquo;events&rdquo;. In this case, it&rsquo;s a <code>TaskUpdated</code> event. Whenever some data of a task is updated, this event is fired from relevant functions in <code>TaskController.php</code>.</p>
+<p>So, we create an event class using this Artisan command:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">php artisan make:event TaskUpdated
+</code></pre></div><p>Then add a line to broadcast an event at the necessary places inside <code>TaskController.php</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">update</span>(<span style="color:#a6e22e">Request</span> $request, <span style="color:#a6e22e">Task</span> $task)
+{
+    <span style="color:#75715e">// Code for updating task
+</span><span style="color:#75715e"></span>
+    <span style="color:#a6e22e">broadcast</span>( <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">TaskUpdated</span>() );
+}
+</code></pre></div><p>Inside the <code>TaskUpdated.php</code> file, we need to implement the <code>ShouldBroadcast</code> interface, get tasks from the database and save them in a variable, and broadcast them to the front-end:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php"><span style="color:#66d9ef">public</span> $tasks;
+
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> __construct() {
+    $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">tasks</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">Task</span><span style="color:#f92672">::</span><span style="color:#a6e22e">all</span>();
+}
+
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">broadcastWith</span>() {
+    <span style="color:#66d9ef">return</span> [ <span style="color:#e6db74">&#39;allTasks&#39;</span> <span style="color:#f92672">=&gt;</span> $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">tasks</span> ];
+}
+</code></pre></div><p>Echo on the front-end needs to listen to this. But since there could be many such broadcasts about many different events, we need something to differentiate theme. So, <code>TaskUpdated.php</code> will broadcast on a &ldquo;channel&rdquo; with a specific name which Echo will listen to:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">broadcastOn</span>() {
+    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">Channel</span>(<span style="color:#e6db74">&#39;all-tasks&#39;</span>);
+}
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js">window.<span style="color:#a6e22e">Echo</span>.<span style="color:#a6e22e">channel</span>(<span style="color:#e6db74">&#39;all-tasks&#39;</span>)
+    .<span style="color:#a6e22e">listen</span>(<span style="color:#e6db74">&#39;TaskUpdated&#39;</span>, (<span style="color:#a6e22e">data</span>) =&gt; {
+        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">tasks</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">data</span>.<span style="color:#a6e22e">allTasks</span>;
+    });
+</code></pre></div><p>These were only some of the details though. Mantle shows tasks in a nicely ordered fashion, with &ldquo;done&rdquo; tasks shown after the &ldquo;not done&rdquo; ones and so on. Plus, an event is also broadcast when a task is removed or a new one is created.</p>
+<hr>
+<p>Check out Mantle on GitHub <a href="https://github.com/nr072/mantle"target="_blank" rel="noopener noreferrer">here</a>
+</p>
+</article>
+</div>
+<div class="article bottom"><section class="article navigation"><p><a class="link" href="/blog/posts/projects/mantle/building-a-todo-list-app-part-3/"><span class="iconfont icon-article"></span>Building a to-do list app (part 3)</a></p></section></div></section><section id="footer"><div class="footer-wrap">
+    <p class="copyright">Coding Harder</p>
+    <p class="powerby"><span>Powered&nbsp;by&nbsp;</span><a href="https://gohugo.io" 
+        target="_blank" rel="noopener noreferrer">Hugo</a><span>&nbsp;&amp;&nbsp;</span><a href="https://themes.gohugo.io/hugo-notepadium/" 
+        target="_blank" rel="noopener noreferrer">Notepadium</a></p></div>
+</section></body>
+
+</html>

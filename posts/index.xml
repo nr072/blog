@@ -5,10 +5,343 @@
     <description>Recent content in Posts on Coding Harder</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 06 May 2021 06:00:00 +0600</lastBuildDate>
+    <lastBuildDate>Thu, 13 May 2021 00:00:00 +0000</lastBuildDate>
     
         <atom:link href="https://example.com/blog/posts/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Building a to-do list app (part 4)</title>
+      <link>https://example.com/blog/posts/projects/mantle/building-a-todo-list-app-part-4/</link>
+      <pubDate>Thu, 13 May 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://example.com/blog/posts/projects/mantle/building-a-todo-list-app-part-4/</guid>
+      <description>&lt;h2 id=&#34;reusing-the-taskeditor-component&#34;&gt;Reusing the &lt;code&gt;TaskEditor&lt;/code&gt; component&lt;/h2&gt;
+&lt;p&gt;The edit section for tasks and the section for adding a new tasks has lots of similarities. I decided to use the &lt;code&gt;TaskEditor&lt;/code&gt; component for both. The main difference, in terms of passing data, is that task adders don&amp;rsquo;t get existing task name or due time.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Data that may be passed&lt;/th&gt;
+&lt;th style=&#34;text-align:center&#34;&gt;To task editor&lt;/th&gt;
+&lt;th style=&#34;text-align:center&#34;&gt;To task adder&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Min of new due time range&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;Yes&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;Yes&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Max of new due time range&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;Yes&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;Yes&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Existing task name&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;Yes&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Existing due time&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;Yes&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;A &lt;a href=&#34;https://vuejs.org/v2/guide/components-edge-cases.html#Accessing-Child-Component-Instances-amp-Child-Elements&#34;target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;&lt;code&gt;ref&lt;/code&gt; attribute&lt;/a&gt;
+ is needed in both to focus the input field when the adder/editor is revealed:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;showEditSection&lt;/span&gt;() {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;isEditing&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;true&lt;/span&gt;;
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;$nextTick&lt;/span&gt;(() =&amp;gt; {
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;$refs&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;taskEditorComp&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;$refs&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;newNameInput&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;focus&lt;/span&gt;();
+    });
+},
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;showAdderSection&lt;/span&gt;() {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;isAddingTask&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;true&lt;/span&gt;;
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;$nextTick&lt;/span&gt;(() =&amp;gt; {
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;$refs&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;taskAdderComp&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;$refs&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;newNameInput&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;focus&lt;/span&gt;();
+    });
+},
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;websocket&#34;&gt;WebSocket&lt;/h2&gt;
+&lt;p&gt;We have three main parties here: the Laravel server, the WebSocket server, and the front-end.&lt;/p&gt;
+&lt;p&gt;So, this is how things work.&lt;/p&gt;
+&lt;p&gt;The Laravel server is always running. In localhost, you run it manually with the &lt;code&gt;php artisan serve&lt;/code&gt; command. And a Laravel app is usually automatically served on (and by) a hosting. What more is needed is a WebSocket server which needs to be constantly running as well. You run that with the &lt;code&gt;php artisan websockets:serve&lt;/code&gt; command in the local environment. (&lt;a href=&#34;https://beyondco.de/docs/laravel-websockets/basic-usage/starting#keeping-the-socket-server-running-with-supervisord&#34;target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;It&amp;rsquo;s different&lt;/a&gt;
+ for production.)&lt;/p&gt;
+&lt;p&gt;Now, if the Laravel back-end wants to let the front-end know about something, it can inform the WebSocket server and &lt;em&gt;that&lt;/em&gt; can send data to the front-end.&lt;/p&gt;
+&lt;p&gt;But the front-end must have some arrangement for &lt;em&gt;receiving&lt;/em&gt; the data. That&amp;rsquo;s where Echo comes in. You set up a listener with Echo that, well, listens to any message/data from the WebSocket server.&lt;/p&gt;
+&lt;p&gt;And that&amp;rsquo;s the gist of it, really.&lt;/p&gt;
+&lt;p&gt;Here&amp;rsquo;s a simplified representation:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;                                                            Front-end
+Laravel server             WebSocket server                  Echo  |
+      |                            |                          |    |
+      |                            |     Starts connection    |    |
+      |                            |&amp;lt;-------------------------|    |
+      |                            |     &amp;amp; keeps listening    |    |
+      |                            |                          |    |
+      |&amp;lt;--- Makes some change -------------------------------------|
+      |                            |                          |    |
+      |--- Tells about change ----&amp;gt;|                          |    |
+      |                            |                          |    |
+      |                            |    Sends data without    |    |
+      |                            |-------------------------&amp;gt;|    |
+      |                            |   action from front-end  |    |
+      |                            |                          |    |
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Of course, there are technical details in every step.&lt;/p&gt;
+&lt;p&gt;For example, the Laravel server lets the WebSocket server know something happened by broadcasting &amp;ldquo;events&amp;rdquo;. In this case, it&amp;rsquo;s a &lt;code&gt;TaskUpdated&lt;/code&gt; event. Whenever some data of a task is updated, this event is fired from relevant functions in &lt;code&gt;TaskController.php&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;So, we create an event class using this Artisan command:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;php artisan make:event TaskUpdated
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Then add a line to broadcast an event at the necessary places inside &lt;code&gt;TaskController.php&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-php&#34; data-lang=&#34;php&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;function&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;update&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;Request&lt;/span&gt; $request, &lt;span style=&#34;color:#a6e22e&#34;&gt;Task&lt;/span&gt; $task)
+{
+    &lt;span style=&#34;color:#75715e&#34;&gt;// Code for updating task
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;broadcast&lt;/span&gt;( &lt;span style=&#34;color:#66d9ef&#34;&gt;new&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;TaskUpdated&lt;/span&gt;() );
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Inside the &lt;code&gt;TaskUpdated.php&lt;/code&gt; file, we need to implement the &lt;code&gt;ShouldBroadcast&lt;/code&gt; interface, get tasks from the database and save them in a variable, and broadcast them to the front-end:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-php&#34; data-lang=&#34;php&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; $tasks;
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;function&lt;/span&gt; __construct() {
+    $this&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;tasks&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Task&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;::&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;all&lt;/span&gt;();
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;function&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;broadcastWith&lt;/span&gt;() {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; [ &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;allTasks&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; $this&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;tasks&lt;/span&gt; ];
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Echo on the front-end needs to listen to this. But since there could be many such broadcasts about many different events, we need something to differentiate theme. So, &lt;code&gt;TaskUpdated.php&lt;/code&gt; will broadcast on a &amp;ldquo;channel&amp;rdquo; with a specific name which Echo will listen to:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-php&#34; data-lang=&#34;php&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;function&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;broadcastOn&lt;/span&gt;() {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;new&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Channel&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;all-tasks&amp;#39;&lt;/span&gt;);
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;window.&lt;span style=&#34;color:#a6e22e&#34;&gt;Echo&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;channel&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;all-tasks&amp;#39;&lt;/span&gt;)
+    .&lt;span style=&#34;color:#a6e22e&#34;&gt;listen&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;TaskUpdated&amp;#39;&lt;/span&gt;, (&lt;span style=&#34;color:#a6e22e&#34;&gt;data&lt;/span&gt;) =&amp;gt; {
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;tasks&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;data&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;allTasks&lt;/span&gt;;
+    });
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;These were only some of the details though. Mantle shows tasks in a nicely ordered fashion, with &amp;ldquo;done&amp;rdquo; tasks shown after the &amp;ldquo;not done&amp;rdquo; ones and so on. Plus, an event is also broadcast when a task is removed or a new one is created.&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;Check out Mantle on GitHub &lt;a href=&#34;https://github.com/nr072/mantle&#34;target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;here&lt;/a&gt;
+&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Building a to-do list app (part 3)</title>
+      <link>https://example.com/blog/posts/projects/mantle/building-a-todo-list-app-part-3/</link>
+      <pubDate>Sun, 09 May 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://example.com/blog/posts/projects/mantle/building-a-todo-list-app-part-3/</guid>
+      <description>&lt;h2 id=&#34;min-max-date-selection-range&#34;&gt;Min-max date selection range&lt;/h2&gt;
+&lt;p&gt;The &lt;code&gt;&amp;lt;input type=&amp;quot;date&amp;quot;&amp;gt;&lt;/code&gt; field allows the user to select any date within 1 year in the future. That may sound ridiculous, but let&amp;rsquo;s stick with it for now. (Anything later than a month should go to a calendar. But I may have plans to add a feature to categorize some tasks.)&lt;/p&gt;
+&lt;p&gt;Regardless of how far the maximum date should be, the fact remains that there should be a maximum date and it should be the same for all tasks. Which means a single value should be passed to all instances of the &lt;code&gt;Task&lt;/code&gt; component.&lt;/p&gt;
+&lt;p&gt;This didn&amp;rsquo;t occur to me at first. I used two (min and max) values each in every task.&lt;/p&gt;
+&lt;p&gt;But I fixed it later. One minimum date and one maximum date were calculated in the &lt;code&gt;TaskList&lt;/code&gt; component and then passed to all tasks.&lt;/p&gt;
+&lt;h2 id=&#34;mysql-datetime-and-js-date&#34;&gt;MySQL &lt;code&gt;datetime&lt;/code&gt; and JS &lt;code&gt;Date&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;Since the MySQL &lt;a href=&#34;https://www.mysqltutorial.org/mysql-datetime&#34;target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;&lt;code&gt;datetime&lt;/code&gt; type&lt;/a&gt;
+ accepts date(time)s in &lt;code&gt;yyyy-mm-dd hh:mm:ss&lt;/code&gt; format, it&amp;rsquo;s quite easy to pass it a date-time value from JS. All you have to do is use &lt;code&gt;.toISOString()&lt;/code&gt; on the JS &lt;code&gt;Date&lt;/code&gt; object and remove the &lt;code&gt;T&lt;/code&gt; from the first part.&lt;/p&gt;
+&lt;p&gt;Merging the date and the time input to create the date-time value was the problem. I had to merge the date input and the time input into a string and get a JS &lt;code&gt;Date&lt;/code&gt; object to parse it to check it they were valid:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;function&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;updateTask&lt;/span&gt;() {
+
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;string&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;newDate&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;newTime&lt;/span&gt;;
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;newDueTime&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;new&lt;/span&gt; Date(&lt;span style=&#34;color:#a6e22e&#34;&gt;string&lt;/span&gt;);
+
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#f92672&#34;&gt;!&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;newDueTime&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;getTime&lt;/span&gt;()) {
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt;;
+    }
+
+    &lt;span style=&#34;color:#75715e&#34;&gt;// More stuff related to actually updating tasks
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This works. But seems like it could be cleaner.&lt;/p&gt;
+&lt;p&gt;Timezones were a huge pain. It was all my fault though. I kept either counting the timezone twice or forgetting it. Things got especially confusing because I was passing the string I got from the database to &lt;code&gt;new Date()&lt;/code&gt; and then using &lt;code&gt;.toISOString()&lt;/code&gt; on it to format the date-time a bit nicely so that the date part and the time part are in the format I needed.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-html&#34; data-lang=&#34;html&#34;&gt;&amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;input&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;v-model&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;newDate&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;type&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;date&amp;#34;&lt;/span&gt;
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;:min&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;newDateMinValue&amp;#34;&lt;/span&gt;
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;:max&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;newDateMaxValue&amp;#34;&lt;/span&gt;
+&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;data&lt;/span&gt;() {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; {
+        &lt;span style=&#34;color:#a6e22e&#34;&gt;now&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;new&lt;/span&gt; Date()
+    }
+},
+
+&lt;span style=&#34;color:#a6e22e&#34;&gt;computed&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; {
+
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;newDateMinValue&lt;/span&gt;() {
+
+        &lt;span style=&#34;color:#75715e&#34;&gt;// Using &amp;#34;.toISOString()&amp;#34; for formatting is bad!
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;now&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;toISOString&lt;/span&gt;().&lt;span style=&#34;color:#a6e22e&#34;&gt;split&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;T&amp;#39;&lt;/span&gt;)[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;];
+
+    },
+
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;newDateMaxValue&lt;/span&gt;() {
+
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;nowPlus1Year&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;new&lt;/span&gt; Date(
+            &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;now&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;getTime&lt;/span&gt;() &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;31536000000&lt;/span&gt;
+        );
+
+        &lt;span style=&#34;color:#75715e&#34;&gt;// Using &amp;#34;.toISOString()&amp;#34; for formatting is bad!
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;nowPlus1Year&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;toISOString&lt;/span&gt;().&lt;span style=&#34;color:#a6e22e&#34;&gt;split&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;T&amp;#39;&lt;/span&gt;)[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;];
+
+    }
+
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;All that chaos because I was doing formatting at the wrong place. I was changing the date-time value by using &lt;code&gt;.toISOString()&lt;/code&gt; just because &lt;code&gt;&amp;lt;input type=&amp;quot;date&amp;quot;&amp;gt;&lt;/code&gt; would only accept values in &lt;code&gt;yyyy-mm-dd&lt;/code&gt; format. That&amp;rsquo;s a good example of why presentation and logical layers should be kept separate.&lt;/p&gt;
+&lt;p&gt;(Anyway, later I decided I probably should use two separate columns for date and time in the database. That way, time can be null too.)&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;Check out Mantle on GitHub &lt;a href=&#34;https://github.com/nr072/mantle&#34;target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;here&lt;/a&gt;
+&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Building a to-do list app (part 2)</title>
+      <link>https://example.com/blog/posts/projects/mantle/building-a-todo-list-app-part-2/</link>
+      <pubDate>Fri, 07 May 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://example.com/blog/posts/projects/mantle/building-a-todo-list-app-part-2/</guid>
+      <description>&lt;p&gt;Although the &amp;ldquo;tasks&amp;rdquo; table has more columns, the very basic functionalities will be concerned with task names and due times. The API will return a bunch of names and times, and Vue will show them on the web page.&lt;/p&gt;
+&lt;p&gt;An important thing to note is that I put the call to the API to fetch tasks in the &lt;a href=&#34;https://vuejs.org/v2/api/#created&#34;target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;&lt;code&gt;created&lt;/code&gt; life-cycle hook&lt;/a&gt;
+ this time. I used to do the initial API call in the &lt;a href=&#34;https://vuejs.org/v2/api/#mounted&#34;target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;&lt;code&gt;mounted&lt;/code&gt; hook&lt;/a&gt;
+. The official Vue documentation does it too. The difference is small, but the &lt;code&gt;created&lt;/code&gt; hook is more logical for this, since fetching from the API doesn&amp;rsquo;t depend on whether the DOM can be changed or not.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;created&lt;/span&gt;() {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;fetchTasks&lt;/span&gt;(); &lt;span style=&#34;color:#75715e&#34;&gt;// Vue instance not mounted to DOM yet
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;},
+
+&lt;span style=&#34;color:#a6e22e&#34;&gt;mounted&lt;/span&gt;() { &lt;span style=&#34;color:#75715e&#34;&gt;// Vue instance has been mounted to DOM
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;fetchTasks&lt;/span&gt;();
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;I&amp;rsquo;m using Axios because it was already included. No idea how different it is from JavaScript&amp;rsquo;s native &amp;ldquo;fetch&amp;rdquo; or in which scenarios one is better than the other.&lt;/p&gt;
+&lt;p&gt;Since the API will return an array of tasks, a list of tasks can be made using &lt;code&gt;v-for&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-html&#34; data-lang=&#34;html&#34;&gt;&amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;ul&lt;/span&gt;&amp;gt;
+    &amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;li&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;v-for&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;task of tasks&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;:key&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;task.id&amp;#34;&lt;/span&gt;&amp;gt;{{ task.name }}&amp;lt;/&lt;span style=&#34;color:#f92672&#34;&gt;li&lt;/span&gt;&amp;gt;
+&amp;lt;/&lt;span style=&#34;color:#f92672&#34;&gt;ul&lt;/span&gt;&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This is a very rudimentary form. In our case, each task will be more complex than just some text inside an &lt;code&gt;&amp;lt;li&amp;gt;&lt;/code&gt; element. So, it&amp;rsquo;s better to use &lt;a href=&#34;https://vuejs.org/v2/guide/single-file-components.html&#34;target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;single-file components&lt;/a&gt;
+ here.&lt;/p&gt;
+&lt;p&gt;That means the &lt;code&gt;&amp;lt;li&amp;gt;&lt;/code&gt; elements can be replaced with a &lt;code&gt;&amp;lt;task&amp;gt;&lt;/code&gt; component, with each task passed to the component:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-html&#34; data-lang=&#34;html&#34;&gt;&amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;ul&lt;/span&gt;&amp;gt;
+    &amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;task&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;v-for&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;task of tasks&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;:key&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;task.id&amp;#34;&lt;/span&gt;
+        &lt;span style=&#34;color:#a6e22e&#34;&gt;:task&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;task&amp;#34;&lt;/span&gt;
+    &amp;gt;&amp;lt;/&lt;span style=&#34;color:#f92672&#34;&gt;task&lt;/span&gt;&amp;gt;
+&amp;lt;/&lt;span style=&#34;color:#f92672&#34;&gt;ul&lt;/span&gt;&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;In turn, the &lt;code&gt;Task.vue&lt;/code&gt; file will have a &lt;code&gt;task&lt;/code&gt; &amp;ldquo;prop&amp;rdquo; of type &lt;code&gt;Object&lt;/code&gt;. The task name will be used as is, but a computed property will be used to show the time left (since &lt;code&gt;leftTime&lt;/code&gt; only needs to update if &lt;code&gt;dueTime&lt;/code&gt; changes):&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-html&#34; data-lang=&#34;html&#34;&gt;&amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;template&lt;/span&gt;&amp;gt;
+    &amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;li&lt;/span&gt;&amp;gt;
+        &amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;div&lt;/span&gt;&amp;gt;{{ task.name }}&amp;lt;/&lt;span style=&#34;color:#f92672&#34;&gt;div&lt;/span&gt;&amp;gt;
+        &amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;div&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;v-if&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;task.dueTime&amp;#34;&lt;/span&gt;&amp;gt;{{ leftTime }}&amp;lt;/&lt;span style=&#34;color:#f92672&#34;&gt;div&lt;/span&gt;&amp;gt;
+    &amp;lt;/&lt;span style=&#34;color:#f92672&#34;&gt;li&lt;/span&gt;&amp;gt;
+&amp;lt;/&lt;span style=&#34;color:#f92672&#34;&gt;template&lt;/span&gt;&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;computed&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; {
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;leftTime&lt;/span&gt;() {
+
+        &lt;span style=&#34;color:#75715e&#34;&gt;// Still haven&amp;#39;t done the main part
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;leftTime&lt;/span&gt;;
+
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;A &lt;code&gt;v-if&lt;/code&gt; check is used for left time because it&amp;rsquo;s not mandatory for a task to have a due time.&lt;/p&gt;
+&lt;p&gt;To add some fields for editing the name and the due time is trickier though. We need three input fields: name, date, and time. (I think &lt;code&gt;&amp;lt;input type=&amp;quot;time&amp;quot;&amp;gt;&lt;/code&gt; has good support now. Need to check.) Plus two buttons to save and cancel. And another for removing the existing due time.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;&amp;lt;li&amp;gt;&lt;/code&gt; element is getting crowded now, because the task name and the &amp;ldquo;edit&amp;rdquo; button needs to show by default, and these should disappear and the edit fields and buttons should show when the &amp;ldquo;edit&amp;rdquo; button is clicked.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-html&#34; data-lang=&#34;html&#34;&gt;&amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;template&lt;/span&gt;&amp;gt;
+    &amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;li&lt;/span&gt;&amp;gt;
+
+        &amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;template&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;v-show&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;!isEditing&amp;#34;&lt;/span&gt;&amp;gt;
+
+            &amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;div&lt;/span&gt;&amp;gt;{{ task.name }}&amp;lt;/&lt;span style=&#34;color:#f92672&#34;&gt;div&lt;/span&gt;&amp;gt;
+            &amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;div&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;v-if&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;task.dueTime&amp;#34;&lt;/span&gt;&amp;gt;{{ leftTime }}&amp;lt;/&lt;span style=&#34;color:#f92672&#34;&gt;div&lt;/span&gt;&amp;gt;
+
+            &amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;button&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;v-on:click&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;isEditing = true&amp;#34;&lt;/span&gt;&amp;gt;Edit&amp;lt;/&lt;span style=&#34;color:#f92672&#34;&gt;button&lt;/span&gt;&amp;gt;
+
+        &amp;lt;/&lt;span style=&#34;color:#f92672&#34;&gt;template&lt;/span&gt;&amp;gt;
+
+        &amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;template&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;v-show&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;isEditing&amp;#34;&lt;/span&gt;&amp;gt;
+            &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- Input fields and buttons related to editing --&amp;gt;&lt;/span&gt;
+        &amp;lt;/&lt;span style=&#34;color:#f92672&#34;&gt;template&lt;/span&gt;&amp;gt;
+
+    &amp;lt;/&lt;span style=&#34;color:#f92672&#34;&gt;li&lt;/span&gt;&amp;gt;
+&amp;lt;/&lt;span style=&#34;color:#f92672&#34;&gt;template&lt;/span&gt;&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;
+&lt;span style=&#34;color:#a6e22e&#34;&gt;computed&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; {
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;dueTimeParts&lt;/span&gt;() {
+        &lt;span style=&#34;color:#75715e&#34;&gt;// Returns an object with two properties: due time&amp;#39;s
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;// date part and time part.
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;// (&amp;#34;Due time&amp;#34; sounds confusing now, I know.)
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    }
+},
+
+&lt;span style=&#34;color:#a6e22e&#34;&gt;methods&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; {
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;showEditSection&lt;/span&gt;() {
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;newName&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;task&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt;;
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;newDate&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;dueTimeParts&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;date&lt;/span&gt;;
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;newTime&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;dueTimeParts&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;time&lt;/span&gt;;
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;isEditing&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;true&lt;/span&gt;;
+    },
+
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;updateTask&lt;/span&gt;() {
+        &lt;span style=&#34;color:#75715e&#34;&gt;//
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;(Using &lt;code&gt;@&lt;/code&gt; instead of &lt;code&gt;v-on:&lt;/code&gt; would&amp;rsquo;ve been nice, but Hugo&amp;rsquo;s (or this theme&amp;rsquo;s, at least) syntax highlighter apparently doesn&amp;rsquo;t support Vue.)&lt;/p&gt;
+&lt;p&gt;I used &lt;code&gt;v-show&lt;/code&gt; instead of &lt;code&gt;v-if&lt;/code&gt; to toggle the task name and the edit section because tasks may be edited frequently. (I do it, though that&amp;rsquo;s more because of the current UI than anything else.) So, &lt;a href=&#34;https://vuejs.org/v2/guide/conditional.html#v-if-vs-v-show&#34;target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;rendering at the beginning and toggling CSS &lt;code&gt;display&lt;/code&gt; later&lt;/a&gt;
+ is fine with me here.&lt;/p&gt;
+&lt;p&gt;Now, clicking the &amp;ldquo;edit&amp;rdquo; button will reveal the edit section, which has three inputs fields bound to three properties via &lt;code&gt;v-model&lt;/code&gt; attributes:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-html&#34; data-lang=&#34;html&#34;&gt;&amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;template&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;v-show&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;isEditing&amp;#34;&lt;/span&gt;&amp;gt;
+
+    &amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;input&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;type&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;text&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;v-model&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;newName&amp;#34;&lt;/span&gt;&amp;gt;
+    &amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;input&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;type&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;date&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;v-model&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;newDate&amp;#34;&lt;/span&gt;&amp;gt;
+    &amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;input&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;type&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;text&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;v-model&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;newTime&amp;#34;&lt;/span&gt;&amp;gt;
+
+    &amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;button&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;v-on:click&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;updateTask&amp;#34;&lt;/span&gt;&amp;gt;Save&amp;lt;/&lt;span style=&#34;color:#f92672&#34;&gt;button&lt;/span&gt;&amp;gt;
+    &amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;button&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;v-on:click&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;isEditing = false&amp;#34;&lt;/span&gt;&amp;gt;Cancel&amp;lt;/&lt;span style=&#34;color:#f92672&#34;&gt;button&lt;/span&gt;&amp;gt;
+
+&amp;lt;/&lt;span style=&#34;color:#f92672&#34;&gt;template&lt;/span&gt;&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;data&lt;/span&gt;() {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; {
+        &lt;span style=&#34;color:#a6e22e&#34;&gt;newName&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt;,
+        &lt;span style=&#34;color:#a6e22e&#34;&gt;newDate&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt;,
+        &lt;span style=&#34;color:#a6e22e&#34;&gt;newTime&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt;
+    }
+},
+
+&lt;span style=&#34;color:#a6e22e&#34;&gt;methods&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; {
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;updateTask&lt;/span&gt;() {
+
+        &lt;span style=&#34;color:#75715e&#34;&gt;// `newName`, `newDate`, and `newTime` are sent to the
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;// back-end to update task.
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+        &lt;span style=&#34;color:#75715e&#34;&gt;// Edit section is hidden, and task name is revealed again.
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;isEditing&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;false&lt;/span&gt;;
+
+    }
+}
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This works.&lt;/p&gt;
+&lt;p&gt;But the next time the user clicks on the &amp;ldquo;edit&amp;rdquo; button again, the input fields will show old values, which is definitely not good. We need to clear the inputs after the update is done. In which case, we need to do this:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;methods&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; {
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;updateTask&lt;/span&gt;() {
+
+        &lt;span style=&#34;color:#75715e&#34;&gt;// `newName`, `newDate`, and `newTime` are sent to the
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;// back-end to update task.
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+        &lt;span style=&#34;color:#75715e&#34;&gt;// Edit section is hidden, and task name is revealed again.
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;isEditing&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;false&lt;/span&gt;;
+
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;clearInputs&lt;/span&gt;();
+
+    },
+
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;clearInputs&lt;/span&gt;() {
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;newName&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt;;
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;newName&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt;;
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;newName&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt;;
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Inputs also need to cleared when the user clicks &amp;ldquo;cancel&amp;rdquo;, in case they change their mind.&lt;/p&gt;
+&lt;p&gt;Plus, the edit section needs to show existing values in the form of pre-filled input fields. (Nobody will type the entire task name when they just want to change a word.) Which means, when the &lt;code&gt;task&lt;/code&gt; prop is updated, the three input values must be updated too.&lt;/p&gt;
+&lt;p&gt;It&amp;rsquo;s starting to feel a bit redundant. We&amp;rsquo;re setting and resetting the three values too much. There should be a cleaner and easier way.&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;Check out Mantle on GitHub &lt;a href=&#34;https://github.com/nr072/mantle&#34;target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;here&lt;/a&gt;
+&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>Building a to-do list app (part 1)</title>

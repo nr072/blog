@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en"><meta charset="utf-8"><meta name="generator" content="Hugo 0.83.1" /><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark"><title>Building a to-do list app (part 2)&nbsp;&ndash;&nbsp;Coding Harder</title><link rel="stylesheet" href="/blog/css/core.min.5b04986dee02f0d1305e9389c680a2eed3cea02c04640ac17d6643bacbc4b765d77e2b6e6b63b862d55560f00c92e9c0.css" integrity="sha384-WwSYbe4C8NEwXpOJxoCi7tPOoCwEZArBfWZDusvEt2XXfitua2O4YtVVYPAMkunA"><meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Building a to-do list app (part 2)" /><body><section id="header">
+    <div class="header wrap"><span class="header left-side"><a class="site home" href="/blog/"><span class="site name">Coding Harder</span></a></span>
+        <span class="header right-side"></span></div></section><section id="content"><div class="article-container"><section class="article header">
+    <h1 class="article title">Building a to-do list app (part 2)</h1><p class="article date">2021-05-07</p></section><article class="article markdown-body"><p>Although the &ldquo;tasks&rdquo; table has more columns, the very basic functionalities will be concerned with task names and due times. The API will return a bunch of names and times, and Vue will show them on the web page.</p>
+<p>An important thing to note is that I put the call to the API to fetch tasks in the <a href="https://vuejs.org/v2/api/#created"target="_blank" rel="noopener noreferrer"><code>created</code> life-cycle hook</a>
+ this time. I used to do the initial API call in the <a href="https://vuejs.org/v2/api/#mounted"target="_blank" rel="noopener noreferrer"><code>mounted</code> hook</a>
+. The official Vue documentation does it too. The difference is small, but the <code>created</code> hook is more logical for this, since fetching from the API doesn&rsquo;t depend on whether the DOM can be changed or not.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#a6e22e">created</span>() {
+    <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">fetchTasks</span>(); <span style="color:#75715e">// Vue instance not mounted to DOM yet
+</span><span style="color:#75715e"></span>},
+
+<span style="color:#a6e22e">mounted</span>() { <span style="color:#75715e">// Vue instance has been mounted to DOM
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">fetchTasks</span>();
+}
+</code></pre></div><p>I&rsquo;m using Axios because it was already included. No idea how different it is from JavaScript&rsquo;s native &ldquo;fetch&rdquo; or in which scenarios one is better than the other.</p>
+<p>Since the API will return an array of tasks, a list of tasks can be made using <code>v-for</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">&lt;<span style="color:#f92672">ul</span>&gt;
+    &lt;<span style="color:#f92672">li</span> <span style="color:#a6e22e">v-for</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;task of tasks&#34;</span> <span style="color:#a6e22e">:key</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;task.id&#34;</span>&gt;{{ task.name }}&lt;/<span style="color:#f92672">li</span>&gt;
+&lt;/<span style="color:#f92672">ul</span>&gt;
+</code></pre></div><p>This is a very rudimentary form. In our case, each task will be more complex than just some text inside an <code>&lt;li&gt;</code> element. So, it&rsquo;s better to use <a href="https://vuejs.org/v2/guide/single-file-components.html"target="_blank" rel="noopener noreferrer">single-file components</a>
+ here.</p>
+<p>That means the <code>&lt;li&gt;</code> elements can be replaced with a <code>&lt;task&gt;</code> component, with each task passed to the component:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">&lt;<span style="color:#f92672">ul</span>&gt;
+    &lt;<span style="color:#f92672">task</span> <span style="color:#a6e22e">v-for</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;task of tasks&#34;</span> <span style="color:#a6e22e">:key</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;task.id&#34;</span>
+        <span style="color:#a6e22e">:task</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;task&#34;</span>
+    &gt;&lt;/<span style="color:#f92672">task</span>&gt;
+&lt;/<span style="color:#f92672">ul</span>&gt;
+</code></pre></div><p>In turn, the <code>Task.vue</code> file will have a <code>task</code> &ldquo;prop&rdquo; of type <code>Object</code>. The task name will be used as is, but a computed property will be used to show the time left (since <code>leftTime</code> only needs to update if <code>dueTime</code> changes):</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">&lt;<span style="color:#f92672">template</span>&gt;
+    &lt;<span style="color:#f92672">li</span>&gt;
+        &lt;<span style="color:#f92672">div</span>&gt;{{ task.name }}&lt;/<span style="color:#f92672">div</span>&gt;
+        &lt;<span style="color:#f92672">div</span> <span style="color:#a6e22e">v-if</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;task.dueTime&#34;</span>&gt;{{ leftTime }}&lt;/<span style="color:#f92672">div</span>&gt;
+    &lt;/<span style="color:#f92672">li</span>&gt;
+&lt;/<span style="color:#f92672">template</span>&gt;
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#a6e22e">computed</span><span style="color:#f92672">:</span> {
+    <span style="color:#a6e22e">leftTime</span>() {
+
+        <span style="color:#75715e">// Still haven&#39;t done the main part
+</span><span style="color:#75715e"></span>
+        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">leftTime</span>;
+
+    }
+}
+</code></pre></div><p>A <code>v-if</code> check is used for left time because it&rsquo;s not mandatory for a task to have a due time.</p>
+<p>To add some fields for editing the name and the due time is trickier though. We need three input fields: name, date, and time. (I think <code>&lt;input type=&quot;time&quot;&gt;</code> has good support now. Need to check.) Plus two buttons to save and cancel. And another for removing the existing due time.</p>
+<p>The <code>&lt;li&gt;</code> element is getting crowded now, because the task name and the &ldquo;edit&rdquo; button needs to show by default, and these should disappear and the edit fields and buttons should show when the &ldquo;edit&rdquo; button is clicked.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">&lt;<span style="color:#f92672">template</span>&gt;
+    &lt;<span style="color:#f92672">li</span>&gt;
+
+        &lt;<span style="color:#f92672">template</span> <span style="color:#a6e22e">v-show</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;!isEditing&#34;</span>&gt;
+
+            &lt;<span style="color:#f92672">div</span>&gt;{{ task.name }}&lt;/<span style="color:#f92672">div</span>&gt;
+            &lt;<span style="color:#f92672">div</span> <span style="color:#a6e22e">v-if</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;task.dueTime&#34;</span>&gt;{{ leftTime }}&lt;/<span style="color:#f92672">div</span>&gt;
+
+            &lt;<span style="color:#f92672">button</span> <span style="color:#a6e22e">v-on:click</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;isEditing = true&#34;</span>&gt;Edit&lt;/<span style="color:#f92672">button</span>&gt;
+
+        &lt;/<span style="color:#f92672">template</span>&gt;
+
+        &lt;<span style="color:#f92672">template</span> <span style="color:#a6e22e">v-show</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;isEditing&#34;</span>&gt;
+            <span style="color:#75715e">&lt;!-- Input fields and buttons related to editing --&gt;</span>
+        &lt;/<span style="color:#f92672">template</span>&gt;
+
+    &lt;/<span style="color:#f92672">li</span>&gt;
+&lt;/<span style="color:#f92672">template</span>&gt;
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js">
+<span style="color:#a6e22e">computed</span><span style="color:#f92672">:</span> {
+    <span style="color:#a6e22e">dueTimeParts</span>() {
+        <span style="color:#75715e">// Returns an object with two properties: due time&#39;s
+</span><span style="color:#75715e"></span>        <span style="color:#75715e">// date part and time part.
+</span><span style="color:#75715e"></span>        <span style="color:#75715e">// (&#34;Due time&#34; sounds confusing now, I know.)
+</span><span style="color:#75715e"></span>    }
+},
+
+<span style="color:#a6e22e">methods</span><span style="color:#f92672">:</span> {
+    <span style="color:#a6e22e">showEditSection</span>() {
+        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">newName</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">task</span>.<span style="color:#a6e22e">name</span>;
+        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">newDate</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">dueTimeParts</span>.<span style="color:#a6e22e">date</span>;
+        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">newTime</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">dueTimeParts</span>.<span style="color:#a6e22e">time</span>;
+        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">isEditing</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
+    },
+
+    <span style="color:#a6e22e">updateTask</span>() {
+        <span style="color:#75715e">//
+</span><span style="color:#75715e"></span>    }
+}
+</code></pre></div><p>(Using <code>@</code> instead of <code>v-on:</code> would&rsquo;ve been nice, but Hugo&rsquo;s (or this theme&rsquo;s, at least) syntax highlighter apparently doesn&rsquo;t support Vue.)</p>
+<p>I used <code>v-show</code> instead of <code>v-if</code> to toggle the task name and the edit section because tasks may be edited frequently. (I do it, though that&rsquo;s more because of the current UI than anything else.) So, <a href="https://vuejs.org/v2/guide/conditional.html#v-if-vs-v-show"target="_blank" rel="noopener noreferrer">rendering at the beginning and toggling CSS <code>display</code> later</a>
+ is fine with me here.</p>
+<p>Now, clicking the &ldquo;edit&rdquo; button will reveal the edit section, which has three inputs fields bound to three properties via <code>v-model</code> attributes:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">&lt;<span style="color:#f92672">template</span> <span style="color:#a6e22e">v-show</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;isEditing&#34;</span>&gt;
+
+    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;text&#34;</span> <span style="color:#a6e22e">v-model</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;newName&#34;</span>&gt;
+    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;date&#34;</span> <span style="color:#a6e22e">v-model</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;newDate&#34;</span>&gt;
+    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;text&#34;</span> <span style="color:#a6e22e">v-model</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;newTime&#34;</span>&gt;
+
+    &lt;<span style="color:#f92672">button</span> <span style="color:#a6e22e">v-on:click</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;updateTask&#34;</span>&gt;Save&lt;/<span style="color:#f92672">button</span>&gt;
+    &lt;<span style="color:#f92672">button</span> <span style="color:#a6e22e">v-on:click</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;isEditing = false&#34;</span>&gt;Cancel&lt;/<span style="color:#f92672">button</span>&gt;
+
+&lt;/<span style="color:#f92672">template</span>&gt;
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#a6e22e">data</span>() {
+    <span style="color:#66d9ef">return</span> {
+        <span style="color:#a6e22e">newName</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;&#39;</span>,
+        <span style="color:#a6e22e">newDate</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;&#39;</span>,
+        <span style="color:#a6e22e">newTime</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;&#39;</span>
+    }
+},
+
+<span style="color:#a6e22e">methods</span><span style="color:#f92672">:</span> {
+    <span style="color:#a6e22e">updateTask</span>() {
+
+        <span style="color:#75715e">// `newName`, `newDate`, and `newTime` are sent to the
+</span><span style="color:#75715e"></span>        <span style="color:#75715e">// back-end to update task.
+</span><span style="color:#75715e"></span>
+        <span style="color:#75715e">// Edit section is hidden, and task name is revealed again.
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">isEditing</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">false</span>;
+
+    }
+}
+
+</code></pre></div><p>This works.</p>
+<p>But the next time the user clicks on the &ldquo;edit&rdquo; button again, the input fields will show old values, which is definitely not good. We need to clear the inputs after the update is done. In which case, we need to do this:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#a6e22e">methods</span><span style="color:#f92672">:</span> {
+    <span style="color:#a6e22e">updateTask</span>() {
+
+        <span style="color:#75715e">// `newName`, `newDate`, and `newTime` are sent to the
+</span><span style="color:#75715e"></span>        <span style="color:#75715e">// back-end to update task.
+</span><span style="color:#75715e"></span>
+        <span style="color:#75715e">// Edit section is hidden, and task name is revealed again.
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">isEditing</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">false</span>;
+
+        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">clearInputs</span>();
+
+    },
+
+    <span style="color:#a6e22e">clearInputs</span>() {
+        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">newName</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;</span>;
+        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">newName</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;</span>;
+        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">newName</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;</span>;
+    }
+}
+</code></pre></div><p>Inputs also need to cleared when the user clicks &ldquo;cancel&rdquo;, in case they change their mind.</p>
+<p>Plus, the edit section needs to show existing values in the form of pre-filled input fields. (Nobody will type the entire task name when they just want to change a word.) Which means, when the <code>task</code> prop is updated, the three input values must be updated too.</p>
+<p>It&rsquo;s starting to feel a bit redundant. We&rsquo;re setting and resetting the three values too much. There should be a cleaner and easier way.</p>
+<hr>
+<p>Check out Mantle on GitHub <a href="https://github.com/nr072/mantle"target="_blank" rel="noopener noreferrer">here</a>
+</p>
+</article>
+</div>
+<div class="article bottom"><section class="article navigation"><p><a class="link" href="/blog/posts/projects/mantle/building-a-todo-list-app-part-3/"><span class="iconfont icon-article"></span>Building a to-do list app (part 3)</a></p><p><a class="link" href="/blog/posts/projects/mantle/building-a-todo-list-app-part-1/"><span class="iconfont icon-article"></span>Building a to-do list app (part 1)</a></p></section></div></section><section id="footer"><div class="footer-wrap">
+    <p class="copyright">Coding Harder</p>
+    <p class="powerby"><span>Powered&nbsp;by&nbsp;</span><a href="https://gohugo.io" 
+        target="_blank" rel="noopener noreferrer">Hugo</a><span>&nbsp;&amp;&nbsp;</span><a href="https://themes.gohugo.io/hugo-notepadium/" 
+        target="_blank" rel="noopener noreferrer">Notepadium</a></p></div>
+</section></body>
+
+</html>

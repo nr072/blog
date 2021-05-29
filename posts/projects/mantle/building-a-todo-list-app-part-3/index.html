@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en"><meta charset="utf-8"><meta name="generator" content="Hugo 0.83.1" /><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark"><title>Building a to-do list app (part 3)&nbsp;&ndash;&nbsp;Coding Harder</title><link rel="stylesheet" href="/blog/css/core.min.5b04986dee02f0d1305e9389c680a2eed3cea02c04640ac17d6643bacbc4b765d77e2b6e6b63b862d55560f00c92e9c0.css" integrity="sha384-WwSYbe4C8NEwXpOJxoCi7tPOoCwEZArBfWZDusvEt2XXfitua2O4YtVVYPAMkunA"><meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Building a to-do list app (part 3)" /><body><section id="header">
+    <div class="header wrap"><span class="header left-side"><a class="site home" href="/blog/"><span class="site name">Coding Harder</span></a></span>
+        <span class="header right-side"></span></div></section><section id="content"><div class="article-container"><section class="article header">
+    <h1 class="article title">Building a to-do list app (part 3)</h1><p class="article date">2021-05-09</p></section><article class="article markdown-body"><h2 id="min-max-date-selection-range">Min-max date selection range</h2>
+<p>The <code>&lt;input type=&quot;date&quot;&gt;</code> field allows the user to select any date within 1 year in the future. That may sound ridiculous, but let&rsquo;s stick with it for now. (Anything later than a month should go to a calendar. But I may have plans to add a feature to categorize some tasks.)</p>
+<p>Regardless of how far the maximum date should be, the fact remains that there should be a maximum date and it should be the same for all tasks. Which means a single value should be passed to all instances of the <code>Task</code> component.</p>
+<p>This didn&rsquo;t occur to me at first. I used two (min and max) values each in every task.</p>
+<p>But I fixed it later. One minimum date and one maximum date were calculated in the <code>TaskList</code> component and then passed to all tasks.</p>
+<h2 id="mysql-datetime-and-js-date">MySQL <code>datetime</code> and JS <code>Date</code></h2>
+<p>Since the MySQL <a href="https://www.mysqltutorial.org/mysql-datetime"target="_blank" rel="noopener noreferrer"><code>datetime</code> type</a>
+ accepts date(time)s in <code>yyyy-mm-dd hh:mm:ss</code> format, it&rsquo;s quite easy to pass it a date-time value from JS. All you have to do is use <code>.toISOString()</code> on the JS <code>Date</code> object and remove the <code>T</code> from the first part.</p>
+<p>Merging the date and the time input to create the date-time value was the problem. I had to merge the date input and the time input into a string and get a JS <code>Date</code> object to parse it to check it they were valid:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#66d9ef">function</span> <span style="color:#a6e22e">updateTask</span>() {
+
+    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">string</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">newDate</span> <span style="color:#f92672">+</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">newTime</span>;
+    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">newDueTime</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Date(<span style="color:#a6e22e">string</span>);
+
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span><span style="color:#a6e22e">newDueTime</span>.<span style="color:#a6e22e">getTime</span>()) {
+        <span style="color:#66d9ef">return</span>;
+    }
+
+    <span style="color:#75715e">// More stuff related to actually updating tasks
+</span><span style="color:#75715e"></span>
+}
+</code></pre></div><p>This works. But seems like it could be cleaner.</p>
+<p>Timezones were a huge pain. It was all my fault though. I kept either counting the timezone twice or forgetting it. Things got especially confusing because I was passing the string I got from the database to <code>new Date()</code> and then using <code>.toISOString()</code> on it to format the date-time a bit nicely so that the date part and the time part are in the format I needed.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">&lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">v-model</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;newDate&#34;</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;date&#34;</span>
+    <span style="color:#a6e22e">:min</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;newDateMinValue&#34;</span>
+    <span style="color:#a6e22e">:max</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;newDateMaxValue&#34;</span>
+&gt;
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#a6e22e">data</span>() {
+    <span style="color:#66d9ef">return</span> {
+        <span style="color:#a6e22e">now</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">new</span> Date()
+    }
+},
+
+<span style="color:#a6e22e">computed</span><span style="color:#f92672">:</span> {
+
+    <span style="color:#a6e22e">newDateMinValue</span>() {
+
+        <span style="color:#75715e">// Using &#34;.toISOString()&#34; for formatting is bad!
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">toISOString</span>().<span style="color:#a6e22e">split</span>(<span style="color:#e6db74">&#39;T&#39;</span>)[<span style="color:#ae81ff">0</span>];
+
+    },
+
+    <span style="color:#a6e22e">newDateMaxValue</span>() {
+
+        <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">nowPlus1Year</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Date(
+            <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">getTime</span>() <span style="color:#f92672">+</span> <span style="color:#ae81ff">31536000000</span>
+        );
+
+        <span style="color:#75715e">// Using &#34;.toISOString()&#34; for formatting is bad!
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">nowPlus1Year</span>.<span style="color:#a6e22e">toISOString</span>().<span style="color:#a6e22e">split</span>(<span style="color:#e6db74">&#39;T&#39;</span>)[<span style="color:#ae81ff">0</span>];
+
+    }
+
+}
+</code></pre></div><p>All that chaos because I was doing formatting at the wrong place. I was changing the date-time value by using <code>.toISOString()</code> just because <code>&lt;input type=&quot;date&quot;&gt;</code> would only accept values in <code>yyyy-mm-dd</code> format. That&rsquo;s a good example of why presentation and logical layers should be kept separate.</p>
+<p>(Anyway, later I decided I probably should use two separate columns for date and time in the database. That way, time can be null too.)</p>
+<hr>
+<p>Check out Mantle on GitHub <a href="https://github.com/nr072/mantle"target="_blank" rel="noopener noreferrer">here</a>
+</p>
+</article>
+</div>
+<div class="article bottom"><section class="article navigation"><p><a class="link" href="/blog/posts/projects/mantle/building-a-todo-list-app-part-4/"><span class="iconfont icon-article"></span>Building a to-do list app (part 4)</a></p><p><a class="link" href="/blog/posts/projects/mantle/building-a-todo-list-app-part-2/"><span class="iconfont icon-article"></span>Building a to-do list app (part 2)</a></p></section></div></section><section id="footer"><div class="footer-wrap">
+    <p class="copyright">Coding Harder</p>
+    <p class="powerby"><span>Powered&nbsp;by&nbsp;</span><a href="https://gohugo.io" 
+        target="_blank" rel="noopener noreferrer">Hugo</a><span>&nbsp;&amp;&nbsp;</span><a href="https://themes.gohugo.io/hugo-notepadium/" 
+        target="_blank" rel="noopener noreferrer">Notepadium</a></p></div>
+</section></body>
+
+</html>
