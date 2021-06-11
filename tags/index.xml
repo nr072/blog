@@ -5,9 +5,46 @@
     <description>Recent content in Tags on Coding Harder</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
+    <lastBuildDate>Sun, 06 Jun 2021 00:00:00 +0000</lastBuildDate>
     
         <atom:link href="https://example.com/blog/tags/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Firefox&#39;s Proton design: Pardon my French but the tabs look fat</title>
+      <link>https://example.com/blog/posts/misc/pardon-my-french-tabs-look-fat/</link>
+      <pubDate>Sun, 06 Jun 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://example.com/blog/posts/misc/pardon-my-french-tabs-look-fat/</guid>
+      <description>&lt;p&gt;Firefox 89 is out and it&amp;rsquo;s gone through &lt;a href=&#34;https://blog.mozilla.org/en/products/firefox/fresh-new-look-for-firefox/&#34;target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;a makeover&lt;/a&gt;
+. The tabs look different, the menu &lt;em&gt;is&lt;/em&gt; different. Lots of design changes. I don&amp;rsquo;t like how tabs look now.&lt;/p&gt;
+&lt;p&gt;The tabs were &amp;ldquo;detached from the browser&amp;rdquo; so that they&amp;rsquo;re easier to move, pull out and stuff? Doesn&amp;rsquo;t sound like a very strong reason. We&amp;rsquo;d been able to take tabs out in the past just as easily. Maybe this will have more effect (or any at all) on new Firefox users, because old users would just tear the necessary tabs out of the current window regardless of how willing or apathetic the tabs look.&lt;/p&gt;
+&lt;p&gt;&lt;span class=&#34;image-container&#34;&gt;&lt;span class=&#34;link&#34;&gt;&lt;img class=&#34;img&#34; src=&#34;images/tabs.jpg&#34;
+        alt=&#34;Multiple tabs in the left image, and a single tab in the right image&#34;/&gt;&lt;/span&gt;&lt;span class=&#34;caption&#34;&gt;&lt;span class=&#34;title&#34;&gt;The new tabs are chubbier (images from the Mozilla Blog)&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;And the second line indicating a video auto-play feels a weak reason just to increase the height. Wouldn&amp;rsquo;t it be simpler with just an icon on the same line?&lt;/p&gt;
+&lt;p&gt;At least the address bar highlight effect is gone. (When the address bar was highlighted, it would grow bigger, touching (overstepping even) borders of everything around.) I disliked it instantly when it got into the Developer Edition. At least now the bar stays the same size.&lt;/p&gt;
+&lt;p&gt;Speaking of the Developer Edition, the context menu has a white border around it in the Dark theme and the Alpenglow theme in the DE now. Why? I seem to recall I&amp;rsquo;ve been able to differentiate the context menu from the colors below quite well in the past. There was a distinct drop-shadow. There still is. (Although the base color of the Dark theme has changed, there seems to be a shadow in it too.) The white border somehow makes it look like high-contrast mode. It doesn&amp;rsquo;t go well with the themes.&lt;/p&gt;
+&lt;p&gt;This change may seem irrelevant in this post, but what bodes ill for Firefox blue bodes ill for Firefox orange as well.&lt;/p&gt;
+&lt;p&gt;Don&amp;rsquo;t get me wrong. There&amp;rsquo;s a ton of good changes as well. The merging of notifications will be appreciated by a lot of people, I think. The new clutter-free design should be very popular. (Though I wouldn&amp;rsquo;t know. I already have it customized.) The new icon for showing active downloads is cool.&lt;/p&gt;
+&lt;p&gt;&lt;span class=&#34;image-container&#34;&gt;&lt;span class=&#34;link&#34;&gt;&lt;img class=&#34;img&#34; src=&#34;images/notification.jpg&#34;
+        alt=&#34;Two notification pop-ups before, and a single merged one after&#34;/&gt;&lt;/span&gt;&lt;span class=&#34;caption&#34;&gt;&lt;span class=&#34;title&#34;&gt;This is good, but too much bold text (image from the Mozilla Blog)&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;And a lot of research has gone to back up the new changes too. They&amp;rsquo;ve looked at which parts of the browser users interact with most and then planned the new design design accordingly. So, the changes merely reflect our actions, what we prefer and what we don&amp;rsquo;t.&lt;/p&gt;
+&lt;p&gt;
+&lt;a href=&#34;https://blog.mozilla.org/wp-content/blogs.dir/278/files/2021/05/fx_firefox_heat-map-browser-1000x625.png&#34;target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;&lt;span class=&#34;image-container&#34;&gt;&lt;span class=&#34;link&#34;&gt;&lt;img class=&#34;img&#34; src=&#34;images/user-interaction.jpg&#34;
+        alt=&#34;Amount of user interaction with the browser UI represented with colors&#34;/&gt;&lt;/span&gt;&lt;span class=&#34;caption&#34;&gt;&lt;span class=&#34;title&#34;&gt;Poor search bar! Don&#39;t be sad, I use you! (image from the Mozilla Blog)&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;I love Firefox. I&amp;rsquo;ve been using it for so long. But the new tab style looks atrocious. Of course, it may be just because it&amp;rsquo;s something new, just because I&amp;rsquo;m too accustomed to the old look. It&amp;rsquo;ll probably pass quickly and I won&amp;rsquo;t even remember the old one after a few months.&lt;/p&gt;
+&lt;p&gt;And, ultimately, my opinion doesn&amp;rsquo;t matter much, because I&amp;rsquo;m not a good example of a browser&amp;rsquo;s target audience. I didn&amp;rsquo;t even notice the change in permission-asking pop-ups! Even after using Google Meet a few times.&lt;/p&gt;
+&lt;p&gt;Lots of people use Mozilla Firefox, and they have different preferences. It&amp;rsquo;s important to tend to most of their needs and provide others with ways to customize things their way. This browser has done a pretty good job over the years, I think. Some may not agree with some decisions, but what matters is whether there&amp;rsquo;s a positive effect on browsing experience after the initial denial wears off.&lt;/p&gt;
+&lt;p&gt;So, I&amp;rsquo;ll still love you, Firefox, even if you&amp;rsquo;re ugly.&lt;/p&gt;
+
+&lt;div style=&#34;position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;&#34;&gt;
+  &lt;iframe src=&#34;https://www.youtube.com/embed/czEGwcZSYyo&#34; style=&#34;position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;&#34; allowfullscreen title=&#34;YouTube Video&#34;&gt;&lt;/iframe&gt;
+&lt;/div&gt;
+
+</description>
+    </item>
     
     <item>
       <title>Building a to-do list app (part 4)</title>
