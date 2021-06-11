@@ -1,0 +1,9 @@
+.category,
+.tag {
+    font-weight: normal;
+    font-size: 0.9em;
+}
+
+.site.name {
+    font-weight: lighter;
+}
