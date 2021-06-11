@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en"><meta charset="utf-8"><meta name="generator" content="Hugo 0.83.1" /><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="supported-color-schemes" content="light dark"><title>Building a to-do list app (part 3)&nbsp;&ndash;&nbsp;Coding Harder</title><link rel="stylesheet" href="/blog/css/core.min.5b04986dee02f0d1305e9389c680a2eed3cea02c04640ac17d6643bacbc4b765d77e2b6e6b63b862d55560f00c92e9c0.css" integrity="sha384-WwSYbe4C8NEwXpOJxoCi7tPOoCwEZArBfWZDusvEt2XXfitua2O4YtVVYPAMkunA"><meta name="twitter:card" content="summary" />
+<meta name="supported-color-schemes" content="light dark"><title>Building a to-do list app (part 3)&nbsp;&ndash;&nbsp;Coding Harder</title><link rel="stylesheet" href="/blog/css/core.min.df52c8f2158972dcc4e86c224de54512b6e404bc33ff342915fbc58703e0b5592236cff426cd33d8f6a45b5c5adeb0ce.css" integrity="sha384-31LI8hWJctzE6GwiTeVFErbkBLwz/zQpFfvFhwPgtVkiNs/0Js0z2PakW1xa3rDO"><meta name="twitter:card" content="summary" />
 <meta name="twitter:title" content="Building a to-do list app (part 3)" /><body><section id="header">
     <div class="header wrap"><span class="header left-side"><a class="site home" href="/blog/"><span class="site name">Coding Harder</span></a></span>
         <span class="header right-side"></span></div></section><section id="content"><div class="article-container"><section class="article header">
-    <h1 class="article title">Building a to-do list app (part 3)</h1><p class="article date">2021-05-09</p></section><article class="article markdown-body"><h2 id="min-max-date-selection-range">Min-max date selection range</h2>
+    <h1 class="article title">Building a to-do list app (part 3)</h1><p class="article date">May 9, 2021</p></section><article class="article markdown-body"><h2 id="min-max-date-selection-range">Min-max date selection range</h2>
 <p>The <code>&lt;input type=&quot;date&quot;&gt;</code> field allows the user to select any date within 1 year in the future. That may sound ridiculous, but let&rsquo;s stick with it for now. (Anything later than a month should go to a calendar. But I may have plans to add a feature to categorize some tasks.)</p>
 <p>Regardless of how far the maximum date should be, the fact remains that there should be a maximum date and it should be the same for all tasks. Which means a single value should be passed to all instances of the <code>Task</code> component.</p>
 <p>This didn&rsquo;t occur to me at first. I used two (min and max) values each in every task.</p>
