@@ -99,17 +99,17 @@
         &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;$refs&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;taskAdderComp&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;$refs&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;newNameInput&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;focus&lt;/span&gt;();
     });
 },
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;websocket&#34;&gt;WebSocket&lt;/h2&gt;
-&lt;p&gt;We have three main parties here: the Laravel server, the WebSocket server, and the front-end.&lt;/p&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;websockets&#34;&gt;WebSockets&lt;/h2&gt;
+&lt;p&gt;We have three main parties here: the Laravel server, the WebSockets server, and the front-end.&lt;/p&gt;
 &lt;p&gt;So, this is how things work.&lt;/p&gt;
-&lt;p&gt;The Laravel server is always running. In localhost, you run it manually with the &lt;code&gt;php artisan serve&lt;/code&gt; command. And a Laravel app is usually automatically served on (and by) a hosting. What more is needed is a WebSocket server which needs to be constantly running as well. You run that with the &lt;code&gt;php artisan websockets:serve&lt;/code&gt; command in the local environment. (&lt;a href=&#34;https://beyondco.de/docs/laravel-websockets/basic-usage/starting#keeping-the-socket-server-running-with-supervisord&#34;target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;It&amp;rsquo;s different&lt;/a&gt;
+&lt;p&gt;The Laravel server is always running. In localhost, you run it manually with the &lt;code&gt;php artisan serve&lt;/code&gt; command. And a Laravel app is usually automatically served on (and by) a hosting. What more is needed is a WebSockets server which needs to be constantly running as well. You run that with the &lt;code&gt;php artisan websockets:serve&lt;/code&gt; command in the local environment. (&lt;a href=&#34;https://beyondco.de/docs/laravel-websockets/basic-usage/starting#keeping-the-socket-server-running-with-supervisord&#34;target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;It&amp;rsquo;s different&lt;/a&gt;
  for production.)&lt;/p&gt;
-&lt;p&gt;Now, if the Laravel back-end wants to let the front-end know about something, it can inform the WebSocket server and &lt;em&gt;that&lt;/em&gt; can send data to the front-end.&lt;/p&gt;
-&lt;p&gt;But the front-end must have some arrangement for &lt;em&gt;receiving&lt;/em&gt; the data. That&amp;rsquo;s where Echo comes in. You set up a listener with Echo that, well, listens to any message/data from the WebSocket server.&lt;/p&gt;
+&lt;p&gt;Now, if the Laravel back-end wants to let the front-end know about something, it can inform the WebSockets server and &lt;em&gt;that&lt;/em&gt; can send data to the front-end.&lt;/p&gt;
+&lt;p&gt;But the front-end must have some arrangement for &lt;em&gt;receiving&lt;/em&gt; the data. That&amp;rsquo;s where Echo comes in. You set up a listener with Echo that, well, listens to any message/data from the WebSockets server.&lt;/p&gt;
 &lt;p&gt;And that&amp;rsquo;s the gist of it, really.&lt;/p&gt;
 &lt;p&gt;Here&amp;rsquo;s a simplified representation:&lt;/p&gt;
 &lt;pre&gt;&lt;code&gt;                                                            Front-end
-Laravel server             WebSocket server                  Echo  |
+Laravel server             WebSockets server                 Echo  |
       |                            |                          |    |
       |                            |     Starts connection    |    |
       |                            |&amp;lt;-------------------------|    |
@@ -124,7 +124,7 @@ Laravel server             WebSocket server                  Echo  |
       |                            |   action from front-end  |    |
       |                            |                          |    |
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Of course, there are technical details in every step.&lt;/p&gt;
-&lt;p&gt;For example, the Laravel server lets the WebSocket server know something happened by broadcasting &amp;ldquo;events&amp;rdquo;. In this case, it&amp;rsquo;s a &lt;code&gt;TaskUpdated&lt;/code&gt; event. Whenever some data of a task is updated, this event is fired from relevant functions in &lt;code&gt;TaskController.php&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;For example, the Laravel server lets the WebSockets server know something happened by broadcasting &amp;ldquo;events&amp;rdquo;. In this case, it&amp;rsquo;s a &lt;code&gt;TaskUpdated&lt;/code&gt; event. Whenever some data of a task is updated, this event is fired from relevant functions in &lt;code&gt;TaskController.php&lt;/code&gt;.&lt;/p&gt;
 &lt;p&gt;So, we create an event class using this Artisan command:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;php artisan make:event TaskUpdated
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Then add a line to broadcast an event at the necessary places inside &lt;code&gt;TaskController.php&lt;/code&gt;:&lt;/p&gt;
@@ -416,8 +416,8 @@ Laravel server             WebSocket server                  Echo  |
 &lt;p&gt;I&amp;rsquo;ll be using Vue 2. The &lt;a href=&#34;https://github.com/vuejs/vue-loader&#34;target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;&amp;ldquo;vue-loader&amp;rdquo; package&lt;/a&gt;
  will be needed because of Single-File Components. But no &amp;ldquo;vue-router&amp;rdquo; or &amp;ldquo;vuex&amp;rdquo;. For now, Mantle will be done with just plain, old data binding.&lt;/p&gt;
 &lt;p&gt;&amp;ldquo;laravel-websockets&amp;rdquo; will be replacing Pusher. (It&amp;rsquo;s always seemed a little ridiculous to me to send data somewhere else to get it to the user. It&amp;rsquo;s like if you want to go from A to B, you need to go from A to C first and then from C to B. But things often seem obvious only in retrospect.)&lt;/p&gt;
-&lt;p&gt;I&amp;rsquo;m new to using WebSocket. For those who don&amp;rsquo;t know what it does: It&amp;rsquo;s used to keep a permanent connection with the server open, as opposed to HTTP requests that can only be sent from the client. This is great, because until the client (a browser, for example) has sent a request to the server, it won&amp;rsquo;t know even if the server&amp;rsquo;s been blown up. So, in case of real-time update, for example, you&amp;rsquo;d have to send requests to the server either continuously or at a specific interval. Both of these have their own problems. But in a WebSocket connection, the server can send data to the client &lt;em&gt;on its own&lt;/em&gt;! The two most common uses of WebSocket probably are chatting apps and notifications.&lt;/p&gt;
-&lt;p&gt;And while a WebSocket server can send data to the client, the client needs to receive it. Echo is a JS library that does just that. Echo listens to messages from the WebSocket server and receives the broadcast data.&lt;/p&gt;
+&lt;p&gt;I&amp;rsquo;m new to using WebSockets. For those who don&amp;rsquo;t know what it does: It&amp;rsquo;s used to keep a permanent connection with the server open, as opposed to HTTP requests that can only be sent from the client. This is great, because until the client (a browser, for example) has sent a request to the server, it won&amp;rsquo;t know even if the server&amp;rsquo;s been blown up. So, in case of real-time update, for example, you&amp;rsquo;d have to send requests to the server either continuously or at a specific interval. Both of these have their own problems. But in a WebSockets connection, the server can send data to the client &lt;em&gt;on its own&lt;/em&gt;! The two most common uses of WebSockets probably are chatting apps and notifications.&lt;/p&gt;
+&lt;p&gt;And while a WebSockets server can send data to the client, the client needs to receive it. Echo is a JS library that does just that. Echo listens to messages from the WebSockets server and receives the broadcast data.&lt;/p&gt;
 &lt;p&gt;I&amp;rsquo;m using Bulma just because I&amp;rsquo;ve never used it before and I don&amp;rsquo;t trust myself with Tailwind yet.&lt;/p&gt;
 &lt;h1 id=&#34;features&#34;&gt;Features&lt;/h1&gt;
 &lt;p&gt;Mantle&amp;rsquo;s features will be simple. A user will be able to:&lt;/p&gt;

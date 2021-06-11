@@ -36,8 +36,8 @@
 <p>I&rsquo;ll be using Vue 2. The <a href="https://github.com/vuejs/vue-loader"target="_blank" rel="noopener noreferrer">&ldquo;vue-loader&rdquo; package</a>
  will be needed because of Single-File Components. But no &ldquo;vue-router&rdquo; or &ldquo;vuex&rdquo;. For now, Mantle will be done with just plain, old data binding.</p>
 <p>&ldquo;laravel-websockets&rdquo; will be replacing Pusher. (It&rsquo;s always seemed a little ridiculous to me to send data somewhere else to get it to the user. It&rsquo;s like if you want to go from A to B, you need to go from A to C first and then from C to B. But things often seem obvious only in retrospect.)</p>
-<p>I&rsquo;m new to using WebSocket. For those who don&rsquo;t know what it does: It&rsquo;s used to keep a permanent connection with the server open, as opposed to HTTP requests that can only be sent from the client. This is great, because until the client (a browser, for example) has sent a request to the server, it won&rsquo;t know even if the server&rsquo;s been blown up. So, in case of real-time update, for example, you&rsquo;d have to send requests to the server either continuously or at a specific interval. Both of these have their own problems. But in a WebSocket connection, the server can send data to the client <em>on its own</em>! The two most common uses of WebSocket probably are chatting apps and notifications.</p>
-<p>And while a WebSocket server can send data to the client, the client needs to receive it. Echo is a JS library that does just that. Echo listens to messages from the WebSocket server and receives the broadcast data.</p>
+<p>I&rsquo;m new to using WebSockets. For those who don&rsquo;t know what it does: It&rsquo;s used to keep a permanent connection with the server open, as opposed to HTTP requests that can only be sent from the client. This is great, because until the client (a browser, for example) has sent a request to the server, it won&rsquo;t know even if the server&rsquo;s been blown up. So, in case of real-time update, for example, you&rsquo;d have to send requests to the server either continuously or at a specific interval. Both of these have their own problems. But in a WebSockets connection, the server can send data to the client <em>on its own</em>! The two most common uses of WebSockets probably are chatting apps and notifications.</p>
+<p>And while a WebSockets server can send data to the client, the client needs to receive it. Echo is a JS library that does just that. Echo listens to messages from the WebSockets server and receives the broadcast data.</p>
 <p>I&rsquo;m using Bulma just because I&rsquo;ve never used it before and I don&rsquo;t trust myself with Tailwind yet.</p>
 <h1 id="features">Features</h1>
 <p>Mantle&rsquo;s features will be simple. A user will be able to:</p>
@@ -70,7 +70,7 @@
 <p>But Mantle will be open-source, and all the code will be available <a href="https://github.com/nr072/mantle"target="_blank" rel="noopener noreferrer">on GitHub</a>
 . So, feel free to check it out there.</p>
 <p>Suggestions are always welcome.</p>
-</article>
+</article><section class="article labels"><a class="category" href=/blog/categories/project/>project</a><a class="tag" href=/blog/tags/mantle/>Mantle</a><a class="tag" href=/blog/tags/vue/>Vue</a><a class="tag" href=/blog/tags/laravel/>Laravel</a><a class="tag" href=/blog/tags/websockets/>WebSockets</a><a class="tag" href=/blog/tags/to-do-list/>to-do list</a></section>
 </div>
 <div class="article bottom"><section class="article navigation"><p><a class="link" href="/blog/posts/projects/mantle/building-a-todo-list-app-part-2/"><span class="iconfont icon-article"></span>Building a to-do list app (part 2)</a></p></section></div></section><section id="footer"><div class="footer-wrap">
     <p class="copyright">Coding Harder</p>

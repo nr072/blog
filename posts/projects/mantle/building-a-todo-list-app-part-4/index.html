@@ -52,17 +52,17 @@
         <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">$refs</span>.<span style="color:#a6e22e">taskAdderComp</span>.<span style="color:#a6e22e">$refs</span>.<span style="color:#a6e22e">newNameInput</span>.<span style="color:#a6e22e">focus</span>();
     });
 },
-</code></pre></div><h2 id="websocket">WebSocket</h2>
-<p>We have three main parties here: the Laravel server, the WebSocket server, and the front-end.</p>
+</code></pre></div><h2 id="websockets">WebSockets</h2>
+<p>We have three main parties here: the Laravel server, the WebSockets server, and the front-end.</p>
 <p>So, this is how things work.</p>
-<p>The Laravel server is always running. In localhost, you run it manually with the <code>php artisan serve</code> command. And a Laravel app is usually automatically served on (and by) a hosting. What more is needed is a WebSocket server which needs to be constantly running as well. You run that with the <code>php artisan websockets:serve</code> command in the local environment. (<a href="https://beyondco.de/docs/laravel-websockets/basic-usage/starting#keeping-the-socket-server-running-with-supervisord"target="_blank" rel="noopener noreferrer">It&rsquo;s different</a>
+<p>The Laravel server is always running. In localhost, you run it manually with the <code>php artisan serve</code> command. And a Laravel app is usually automatically served on (and by) a hosting. What more is needed is a WebSockets server which needs to be constantly running as well. You run that with the <code>php artisan websockets:serve</code> command in the local environment. (<a href="https://beyondco.de/docs/laravel-websockets/basic-usage/starting#keeping-the-socket-server-running-with-supervisord"target="_blank" rel="noopener noreferrer">It&rsquo;s different</a>
  for production.)</p>
-<p>Now, if the Laravel back-end wants to let the front-end know about something, it can inform the WebSocket server and <em>that</em> can send data to the front-end.</p>
-<p>But the front-end must have some arrangement for <em>receiving</em> the data. That&rsquo;s where Echo comes in. You set up a listener with Echo that, well, listens to any message/data from the WebSocket server.</p>
+<p>Now, if the Laravel back-end wants to let the front-end know about something, it can inform the WebSockets server and <em>that</em> can send data to the front-end.</p>
+<p>But the front-end must have some arrangement for <em>receiving</em> the data. That&rsquo;s where Echo comes in. You set up a listener with Echo that, well, listens to any message/data from the WebSockets server.</p>
 <p>And that&rsquo;s the gist of it, really.</p>
 <p>Here&rsquo;s a simplified representation:</p>
 <pre><code>                                                            Front-end
-Laravel server             WebSocket server                  Echo  |
+Laravel server             WebSockets server                 Echo  |
       |                            |                          |    |
       |                            |     Starts connection    |    |
       |                            |&lt;-------------------------|    |
@@ -77,7 +77,7 @@ Laravel server             WebSocket server                  Echo  |
       |                            |   action from front-end  |    |
       |                            |                          |    |
 </code></pre><p>Of course, there are technical details in every step.</p>
-<p>For example, the Laravel server lets the WebSocket server know something happened by broadcasting &ldquo;events&rdquo;. In this case, it&rsquo;s a <code>TaskUpdated</code> event. Whenever some data of a task is updated, this event is fired from relevant functions in <code>TaskController.php</code>.</p>
+<p>For example, the Laravel server lets the WebSockets server know something happened by broadcasting &ldquo;events&rdquo;. In this case, it&rsquo;s a <code>TaskUpdated</code> event. Whenever some data of a task is updated, this event is fired from relevant functions in <code>TaskController.php</code>.</p>
 <p>So, we create an event class using this Artisan command:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">php artisan make:event TaskUpdated
 </code></pre></div><p>Then add a line to broadcast an event at the necessary places inside <code>TaskController.php</code>:</p>
@@ -109,7 +109,7 @@ Laravel server             WebSocket server                  Echo  |
 <hr>
 <p>Check out Mantle on GitHub <a href="https://github.com/nr072/mantle"target="_blank" rel="noopener noreferrer">here</a>
 </p>
-</article>
+</article><section class="article labels"><a class="category" href=/blog/categories/project/>project</a><a class="tag" href=/blog/tags/mantle/>Mantle</a><a class="tag" href=/blog/tags/vue/>Vue</a><a class="tag" href=/blog/tags/laravel/>Laravel</a><a class="tag" href=/blog/tags/websockets/>WebSockets</a><a class="tag" href=/blog/tags/to-do-list/>to-do list</a></section>
 </div>
 <div class="article bottom"><section class="article navigation"><p><a class="link" href="/blog/posts/misc/pardon-my-french-tabs-look-fat/"><span class="iconfont icon-article"></span>Firefox's Proton design: Pardon my French but the tabs look fat</a></p><p><a class="link" href="/blog/posts/projects/mantle/building-a-todo-list-app-part-3/"><span class="iconfont icon-article"></span>Building a to-do list app (part 3)</a></p></section></div></section><section id="footer"><div class="footer-wrap">
     <p class="copyright">Coding Harder</p>
