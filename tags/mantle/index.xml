@@ -1,21 +1,21 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Mantle on Coding Harder</title>
-    <link>https://example.com/blog/tags/mantle/</link>
+    <link>https://nr072.github.io/blog/tags/mantle/</link>
     <description>Recent content in Mantle on Coding Harder</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Thu, 13 May 2021 00:00:00 +0000</lastBuildDate>
     
-        <atom:link href="https://example.com/blog/tags/mantle/index.xml" rel="self" type="application/rss+xml" />
+        <atom:link href="https://nr072.github.io/blog/tags/mantle/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>Firefox&#39;s Proton design: Pardon my French but the tabs look fat</title>
-      <link>https://example.com/blog/posts/misc/pardon-my-french-tabs-look-fat/</link>
+      <link>https://nr072.github.io/blog/posts/misc/pardon-my-french-tabs-look-fat/</link>
       <pubDate>Sun, 06 Jun 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://example.com/blog/posts/misc/pardon-my-french-tabs-look-fat/</guid>
+      <guid>https://nr072.github.io/blog/posts/misc/pardon-my-french-tabs-look-fat/</guid>
       <description>&lt;p&gt;Firefox 89 is out and it&amp;rsquo;s gone through &lt;a href=&#34;https://blog.mozilla.org/en/products/firefox/fresh-new-look-for-firefox/&#34;target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;a makeover&lt;/a&gt;
 . The tabs look different, the menu &lt;em&gt;is&lt;/em&gt; different. Lots of design changes. I don&amp;rsquo;t like how tabs look now.&lt;/p&gt;
 &lt;p&gt;The tabs were &amp;ldquo;detached from the browser&amp;rdquo; so that they&amp;rsquo;re easier to move, pull out and stuff? Doesn&amp;rsquo;t sound like a very strong reason. We&amp;rsquo;d been able to take tabs out in the past just as easily. Maybe this will have more effect (or any at all) on new Firefox users, because old users would just tear the necessary tabs out of the current window regardless of how willing or apathetic the tabs look.&lt;/p&gt;
@@ -47,11 +47,416 @@
     </item>
     
     <item>
+      <title>Part 8: Problem - returning same data from multiple places</title>
+      <link>https://nr072.github.io/blog/posts/projects/mantle/8-problem-returning-same-data-from-multiple-places/</link>
+      <pubDate>Thu, 03 Jun 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://nr072.github.io/blog/posts/projects/mantle/8-problem-returning-same-data-from-multiple-places/</guid>
+      <description>&lt;p&gt;The task card shows a list of related tasks when a note is clicked (&amp;ldquo;opened&amp;rdquo;). If a task data is modified when it&amp;rsquo;s shown on the task card, it updates in real-time. Here I ran into an issue.&lt;/p&gt;
+&lt;p&gt;Every time a task data is modified, a Laravel event broadcasts the entire list of tasks to Echo, for updating the task list. Since the returned array directly replaces Vue&amp;rsquo;s reactive &lt;code&gt;tasks&lt;/code&gt; array, it needs to be in the same format as the original array. Which means the same code needs to return data in both cases: for the original array that a controller function returns on page load, and for the array the Laravel event returns every time there&amp;rsquo;s a modification.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-php&#34; data-lang=&#34;php&#34;&gt;$tasks &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Task&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;::&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;orderByRaw&lt;/span&gt;(
+        &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;is_done, due_time is null,
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        due_time,
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        created_at desc&amp;#39;&lt;/span&gt;
+    )
+    &lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;select&lt;/span&gt;(
+        &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;id&amp;#39;&lt;/span&gt;,
+        &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;name&amp;#39;&lt;/span&gt;,
+        &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;due_time as dueTimeUtc&amp;#39;&lt;/span&gt;,
+        &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;is_done as isDone&amp;#39;&lt;/span&gt;
+    )
+    &lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;limit&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;20&lt;/span&gt;)
+    &lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;get&lt;/span&gt;();
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Even though the code to get data for the task list is relatively simple, keeping the same code in multiple places makes it very hard to change anything later. Every time there&amp;rsquo;s a change in the array structure, the change will have to made in all the places. This not only is redundant but also causes error that are hard to catch. Just forgetting to make changes in one place can have you looking into half the project files.&lt;/p&gt;
+&lt;p&gt;Imagine what happens with complex code.&lt;/p&gt;
+&lt;p&gt;So, there must be a way to use the same code from multiple places.&lt;/p&gt;
+&lt;h2 id=&#34;a-few-possible-ways&#34;&gt;A few possible ways&lt;/h2&gt;
+&lt;p&gt;With some help from my limited knowledge of Laravel, I instantly thought these ways:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;Making an &lt;code&gt;app()-&amp;gt;call()&lt;/code&gt; call inside the event.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Passing &lt;code&gt;$tasks&lt;/code&gt; to the event in the &lt;code&gt;::dispatch()&lt;/code&gt; call.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Using a global helper to get &lt;code&gt;$tasks&lt;/code&gt; from both places.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Using a model method to get &lt;code&gt;$tasks&lt;/code&gt; from both places.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;1-app-call-inside-event&#34;&gt;#1 &lt;code&gt;app()-&amp;gt;call()&lt;/code&gt; inside event&lt;/h3&gt;
+&lt;p&gt;This is a pretty straightforward way. The controller&amp;rsquo;s &lt;code&gt;index()&lt;/code&gt; method will stay as is, and it&amp;rsquo;ll be called from inside the event. This way, the single source of data still is the controller method.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-php&#34; data-lang=&#34;php&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;TaskUpdated&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;implements&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ShouldBroadcast&lt;/span&gt;
+{
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;use&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Dispatchable&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;InteractsWithSockets&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;SerializesModels&lt;/span&gt;;
+
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; $tasks;
+
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;function&lt;/span&gt; __construct()
+    {
+        $this&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;tasks&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;app&lt;/span&gt;()&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;call&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;App\Http\Controllers\TaskController@index&amp;#39;&lt;/span&gt;);
+    }
+
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;2-parameter-of-dispatch&#34;&gt;#2 Parameter of &lt;code&gt;::dispatch()&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;In this case, whichever controller method is supposed to fire the event calls the controller&amp;rsquo;s &lt;code&gt;index()&lt;/code&gt; method itself to obtain task data. And then it passes that data to the event.&lt;/p&gt;
+&lt;p&gt;For example, when a task&amp;rsquo;s data is modified, the &lt;code&gt;update()&lt;/code&gt; method itself will get the array of tasks form &lt;code&gt;index()&lt;/code&gt; and then simply pass it to &lt;code&gt;TaskUpdated::dispatch()&lt;/code&gt; as a parameter:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-php&#34; data-lang=&#34;php&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;function&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;index&lt;/span&gt;()
+{
+    &lt;span style=&#34;color:#75715e&#34;&gt;// Returns an array of tasks
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;function&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;update&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;Task&lt;/span&gt; $task)
+{
+    &lt;span style=&#34;color:#75715e&#34;&gt;// Code for updating the task
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+    $tasks &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; $this&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;index&lt;/span&gt;();
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;TaskUpdated&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;::&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;dispatch&lt;/span&gt;( $tasks );
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-php&#34; data-lang=&#34;php&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;function&lt;/span&gt; __construct($tasks)
+{
+    $this&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;tasks&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; $tasks;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;3-global-helper-function&#34;&gt;#3 Global helper function&lt;/h3&gt;
+&lt;p&gt;Here, we move the source of data from &lt;code&gt;index()&lt;/code&gt; to a global helper function, and then call the helper from both &lt;code&gt;index()&lt;/code&gt; and the event.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-php&#34; data-lang=&#34;php&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;function&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;index&lt;/span&gt;()
+{
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;tasksForTaskList&lt;/span&gt;();
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-php&#34; data-lang=&#34;php&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;function&lt;/span&gt; __construct()
+{
+    $this&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;tasks&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;tasksForTaskList&lt;/span&gt;();
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;4-model-method&#34;&gt;#4 Model method&lt;/h3&gt;
+&lt;p&gt;Almost the same as a global helper except it&amp;rsquo;s a model method.&lt;/p&gt;
+&lt;h2 id=&#34;so-which-one&#34;&gt;So, which one?&lt;/h2&gt;
+&lt;p&gt;The 4th way was instantly out of the question. Getting data on a specific number of tasks formatted in a specific way seemed too case-dependent for a &lt;em&gt;model&lt;/em&gt; method. In fact, I didn&amp;rsquo;t even test if it worked. And later I realized I probably misunderstood how models work.&lt;/p&gt;
+&lt;p&gt;Using a global helper also didn&amp;rsquo;t seem right. It seemed unnecessary, and it removed a very important part from the controller and put it in an almost random place.&lt;/p&gt;
+&lt;p&gt;The other two ways seemed plausible, but it&amp;rsquo;d probably depend on conventions or good practices as to which should be used. (Personally, I was leaning toward way #2.)&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;Check out Mantle on GitHub &lt;a href=&#34;https://github.com/nr072/mantle&#34;target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;here&lt;/a&gt;
+&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Part 7: Theme switching?</title>
+      <link>https://nr072.github.io/blog/posts/projects/mantle/7-theme-switching/</link>
+      <pubDate>Wed, 02 Jun 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://nr072.github.io/blog/posts/projects/mantle/7-theme-switching/</guid>
+      <description>&lt;p&gt;The UI is too white. A good app should have a theme switching feature. A high contrast theme is necessary for accessibility.&lt;/p&gt;
+&lt;p&gt;Though I only want the dark theme now.&lt;/p&gt;
+&lt;p&gt;There are a few ways to implement theme switching. I like CSS approaches because they&amp;rsquo;re usually simpler. But since we&amp;rsquo;re using Vue, I want to make use of it.&lt;/p&gt;
+&lt;h2 id=&#34;using-vue&#34;&gt;Using Vue&lt;/h2&gt;
+&lt;p&gt;The current UI can be considered as the light theme. For the dark theme, we basically need a dark background and white text.&lt;/p&gt;
+&lt;p&gt;Actually, we&amp;rsquo;ll need several dark backgrounds. At least two in the current situation: one for the page background and one for the cards. Thanks to Bulma, this can be done easily by replacing CSS classes in a few places.&lt;/p&gt;
+&lt;p&gt;The (kind of) &amp;ldquo;before&amp;rdquo; and &amp;ldquo;after&amp;rdquo; of the HTML:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-html&#34; data-lang=&#34;html&#34;&gt;&amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;body&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;class&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;has-background-white-ter&amp;#34;&lt;/span&gt;&amp;gt;
+    ...
+    &amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;div&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;class&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;card has-background-white-bis&amp;#34;&lt;/span&gt;&amp;gt;
+        ...
+    &amp;lt;/&lt;span style=&#34;color:#f92672&#34;&gt;div&lt;/span&gt;&amp;gt;
+    ...
+&amp;lt;/&lt;span style=&#34;color:#f92672&#34;&gt;body&lt;/span&gt;&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-html&#34; data-lang=&#34;html&#34;&gt;&amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;body&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;class&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;has-background-dark&amp;#34;&lt;/span&gt;&amp;gt;
+    ...
+    &amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;div&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;class&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;card has-background-grey-dark has-text-light&amp;#34;&lt;/span&gt;&amp;gt;
+        ...
+        &amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;p&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;class&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;card-header-title has-text-light&amp;#34;&lt;/span&gt;&amp;gt;
+            ...
+        &amp;lt;/&lt;span style=&#34;color:#f92672&#34;&gt;p&lt;/span&gt;&amp;gt;
+        ...
+    &amp;lt;/&lt;span style=&#34;color:#f92672&#34;&gt;div&lt;/span&gt;&amp;gt;
+    ...
+&amp;lt;/&lt;span style=&#34;color:#f92672&#34;&gt;body&lt;/span&gt;&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The buttons and input fields can be easily changed since Bulma classes were used.&lt;/p&gt;
+&lt;p&gt;So, we have a handful of classes for each theme. Now all we need is something that can set the class names based on the value of a certain variable.&lt;/p&gt;
+&lt;p&gt;Inside &lt;code&gt;App.vue&lt;/code&gt;, we can add an &lt;code&gt;isDarkTheme&lt;/code&gt; property that will have &lt;code&gt;false&lt;/code&gt; as the default value. Then the classes can be added based on its value:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-vue&#34; data-lang=&#34;vue&#34;&gt;&amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;div&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;class&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;card&amp;#34;&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;class&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;#39;has-background-&amp;#39; + (isDarkTheme ? &amp;#39;white-bis&amp;#39; : &amp;#39;grey-dark&amp;#39;)&amp;#34;&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;class&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;{ &amp;#39;has-text-light&amp;#39; : isDarkTheme }&amp;#34;&lt;/span&gt;
+&amp;gt;
+    ...
+    &amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;p&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;class&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;card-header-title&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;class&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;{ &amp;#39;has-text-light&amp;#39; : isDarkTheme }&amp;#34;&lt;/span&gt;&amp;gt;
+        ...
+    &amp;lt;/&lt;span style=&#34;color:#f92672&#34;&gt;p&lt;/span&gt;&amp;gt;
+    ...
+&amp;lt;/&lt;span style=&#34;color:#f92672&#34;&gt;div&lt;/span&gt;&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;You should&amp;rsquo;ve noticed a problem already. The &lt;code&gt;&amp;lt;body&amp;gt;&lt;/code&gt; tag is out of reach of the &lt;code&gt;App&lt;/code&gt; component.&lt;/p&gt;
+&lt;p&gt;We can solve that by removing the background color from &lt;code&gt;&amp;lt;body&amp;gt;&lt;/code&gt; and adding it to the element immediately inside the &lt;code&gt;App&lt;/code&gt; component&amp;rsquo;s template. Some other CSS modifications will be necessary.&lt;/p&gt;
+&lt;p&gt;Now if we add a checkbox connected to &lt;code&gt;isDarkTheme&lt;/code&gt; with a &lt;code&gt;v-model&lt;/code&gt; attribute, themes can be easily switched by simply checking and unchecking it.&lt;/p&gt;
+&lt;p&gt;Except not inside child components.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;isDarkTheme&lt;/code&gt; is a property of &lt;code&gt;App&lt;/code&gt; and doesn&amp;rsquo;t automatically get passed to child components. So, they have no way of knowing when the checkbox is checked or unchecked. This can be solved by passing &lt;code&gt;isDarkTheme&lt;/code&gt; as a prop to all child components, and they&amp;rsquo;ll pass it to all their child components and so on until the end of the world.&lt;/p&gt;
+&lt;p&gt;Seems a lot of work.&lt;/p&gt;
+&lt;p&gt;(I know there are lots of theme switching methods crowding the street out there. But I want to try to solve the problem myself and see what I come up with, what problems I face, etc.)&lt;/p&gt;
+&lt;h2 id=&#34;back-to-css&#34;&gt;Back to CSS&lt;/h2&gt;
+&lt;p&gt;The CSS way I&amp;rsquo;ve been using is rather plain. And it limits the HTML structure a bit.&lt;/p&gt;
+&lt;p&gt;It&amp;rsquo;s done using a checkbox and the &lt;a href=&#34;https://developer.mozilla.org/en-US/docs/Web/CSS/Adjacent_sibling_combinator&#34;target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;CSS adjacent sibling combinator&lt;/a&gt;
+ to switch styles. We add a checkbox before the superdupercontainer that contains everything of the webpage. Then, when the checkbox is checked, a certain type of style is applied to the descendants of the container; and when it&amp;rsquo;s unchecked, a different type of style is applied to the descendants.&lt;/p&gt;
+&lt;p&gt;In Mantle&amp;rsquo;s case, it&amp;rsquo;d look like this:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-html&#34; data-lang=&#34;html&#34;&gt;&amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;body&lt;/span&gt;&amp;gt;
+
+    &amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;input&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;type&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;checkbox&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;id&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;theme-switcher&amp;#34;&lt;/span&gt;&amp;gt;
+
+    &amp;lt;&lt;span style=&#34;color:#f92672&#34;&gt;div&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;id&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;app&amp;#34;&lt;/span&gt;&amp;gt;
+        ...
+    &amp;lt;/&lt;span style=&#34;color:#f92672&#34;&gt;div&lt;/span&gt;&amp;gt;
+
+&amp;lt;/&lt;span style=&#34;color:#f92672&#34;&gt;body&lt;/span&gt;&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-css&#34; data-lang=&#34;css&#34;&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;card&lt;/span&gt; {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;background-color&lt;/span&gt;: &lt;span style=&#34;color:#66d9ef&#34;&gt;white&lt;/span&gt;;
+}
+
+#theme-switcher&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;checked&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; #app .&lt;span style=&#34;color:#a6e22e&#34;&gt;card&lt;/span&gt; {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;background-color&lt;/span&gt;: &lt;span style=&#34;color:#66d9ef&#34;&gt;black&lt;/span&gt;;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;But this means lots of selectors must have &lt;code&gt;#theme-switcher[checked] + #app&lt;/code&gt; added in front of them, which looks bad.&lt;/p&gt;
+&lt;p&gt;And, more importantly, we lose the ease of using Bulma&amp;rsquo;s classes. When using the JS approach, we were just changing the class names and everything would look nicely different. Here, we&amp;rsquo;ll have to manually write the CSS code. Then what&amp;rsquo;s the point of Bulma?&lt;/p&gt;
+&lt;p&gt;So, this is a no-go.&lt;/p&gt;
+&lt;h2 id=&#34;now-what&#34;&gt;Now what?&lt;/h2&gt;
+&lt;p&gt;If we want to use Bulma, seems like we must use Vue. Can we bypass the eternal prop-passing somehow?&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;To be pursued later&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;(I don&amp;rsquo;t want dark theme now anymore. All the colors I used were set thinking of light backgrounds. Every little badge is waging wars with the dark colors now. I need to pick some colors first, and that&amp;rsquo;s a job for another day.&lt;/p&gt;
+&lt;p&gt;Goes to show why you should plan first (even a little).)&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;Check out Mantle on GitHub &lt;a href=&#34;https://github.com/nr072/mantle&#34;target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;here&lt;/a&gt;
+&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Part 6: Not just badges, but &#34;NoT&#34; badges!</title>
+      <link>https://nr072.github.io/blog/posts/projects/mantle/6-not-just-badges-but-not-badges/</link>
+      <pubDate>Tue, 25 May 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://nr072.github.io/blog/posts/projects/mantle/6-not-just-badges-but-not-badges/</guid>
+      <description>&lt;h2 id=&#34;not-badges&#34;&gt;&amp;ldquo;NoT&amp;rdquo; badges&lt;/h2&gt;
+&lt;p&gt;There are two card-like distinct sections on the UI now. For simplicity&amp;rsquo;s sake, let&amp;rsquo;s call them &amp;ldquo;cards&amp;rdquo; until the UI changes. The left one (top in mobile view) is the &amp;ldquo;task card&amp;rdquo;, and the right one is the &amp;ldquo;note card&amp;rdquo;. As their names suggest, the task card shows a list of tasks, and the note card shows a list of notes.&lt;/p&gt;
+&lt;p&gt;On page load, the note card shows a list of available note names. (It currently shows all notes. Will need some logic for showing some specific notes only, for example, the last-modified 10 notes, or 5 &amp;ldquo;pinned&amp;rdquo; ones and the last-modified 5. But I haven&amp;rsquo;t decided on that yet.) The task card shows nothing except a button for creating new tasks on page load. If a note name on the note card is clicked, the tasks that belong to that note are shown on the task card. Pretty straight-forward, intuitive UI.&lt;/p&gt;
+&lt;p&gt;Beside each note name on the note card, a number may be shown in the form of a badge. This is, currently, the number of &amp;ldquo;pending&amp;rdquo; tasks for that note. I&amp;rsquo;m calling these badges &amp;ldquo;Not&amp;rdquo; badge. &amp;ldquo;NoT&amp;rdquo; here is a dumb acronym for &amp;ldquo;number of tasks&amp;rdquo;.&lt;/p&gt;
+&lt;p&gt;It might have been a lot better to call them &amp;ldquo;pending badges&amp;rdquo;, but I&amp;rsquo;m planning to show the number of &amp;ldquo;done&amp;rdquo; tasks too there. This will be due to personal preferences, since I don&amp;rsquo;t think many people would want both numbers there. Seems like Mantle will need a &amp;ldquo;preferences&amp;rdquo; feature to show/hide &amp;ldquo;done&amp;rdquo; badges.&lt;/p&gt;
+&lt;h2 id=&#34;updating-not-badges&#34;&gt;Updating &amp;ldquo;NoT&amp;rdquo; badges&lt;/h2&gt;
+&lt;p&gt;These badges need to update in real-time as the user marks tasks as &amp;ldquo;done&amp;rdquo; or &amp;ldquo;pending&amp;rdquo;. There are a few ways to do that:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;Updating data directly in the Vue instance after the request to the API (for updating a task&amp;rsquo;s status) has succeeded.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Sending a &amp;ldquo;GET&amp;rdquo; request for fetching notes after the request to the API has succeeded.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Using WebSockets and Laravel&amp;rsquo;s event broadcasting.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;The choice might seem obvious, seeing how we&amp;rsquo;re using Echo already. But only because we&amp;rsquo;re using one thing doesn&amp;rsquo;t mean we can&amp;rsquo;t use anything else. The best way to do something is to use whatever tools do it best.&lt;/p&gt;
+&lt;h3 id=&#34;1-directly-updating-the-relevant-note-in-vue&#34;&gt;#1 Directly updating the relevant note in Vue&lt;/h3&gt;
+&lt;p&gt;Way #1 depends on whether the request to the API succeeded or not. We&amp;rsquo;d need to check the response status and do the update in Vue data only if a success status was returned.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;axios&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;put&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;url&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;data&lt;/span&gt;)
+    .&lt;span style=&#34;color:#a6e22e&#34;&gt;then&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;response&lt;/span&gt; =&amp;gt; {
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;response&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;status&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;===&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;200&lt;/span&gt;) {
+            &lt;span style=&#34;color:#75715e&#34;&gt;// Somehow directly update in Vue
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;        }
+    })
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Updating Vue data would need some lines of code. Because, if we only checked the status to make sure the request succeeded, we&amp;rsquo;d need to loop through Vue&amp;rsquo;s &lt;code&gt;notes&lt;/code&gt; array to find out which note&amp;rsquo;s task status changed. (Remember, to update a &amp;ldquo;NoT&amp;rdquo; badge, we need to modify Vue&amp;rsquo;s &lt;code&gt;notes&lt;/code&gt; array which is in the &lt;code&gt;NoteList&lt;/code&gt; Vue component, and the clicked task&amp;rsquo;s ID would come from the &lt;code&gt;TaskList&lt;/code&gt;component.)&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;response&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;status&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;===&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;200&lt;/span&gt;) {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;$emit&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;status-changed&amp;#39;&lt;/span&gt;, {
+        &lt;span style=&#34;color:#a6e22e&#34;&gt;id&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;response&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;data&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;noteId&lt;/span&gt;,
+        &lt;span style=&#34;color:#a6e22e&#34;&gt;numOfPendingTasks&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;response&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;data&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;numOfPendingTasks&lt;/span&gt;
+    });
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;updateNotes&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;updatedNoteData&lt;/span&gt;) {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;notes&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;length&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;; &lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;; &lt;span style=&#34;color:#f92672&#34;&gt;--&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt;) {
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;note&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;notes&lt;/span&gt;[&lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt;];
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;note&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;id&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;===&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;updatedNoteData&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;id&lt;/span&gt;) {
+            &lt;span style=&#34;color:#a6e22e&#34;&gt;note&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;numOfPendingTasks&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;updatedNoteData&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;numOfPendingTasks&lt;/span&gt;;
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;2-replacingupdating-the-entire-notes-array-in-vue&#34;&gt;#2 Replacing/updating the entire &lt;code&gt;notes&lt;/code&gt; array in Vue&lt;/h3&gt;
+&lt;p&gt;Way #2 makes the second part of way #1 easier. Instead of finding which note should be updated, we get data for the entire note list and just replace it (like rebuilding a house instead of repairing a single room). This is easier than the first but the payload is much larger.&lt;/p&gt;
+&lt;p&gt;By the way, this can be done without sending a separate &amp;ldquo;GET&amp;rdquo; request. The response would just have to return the array.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;response&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;status&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;===&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;200&lt;/span&gt;) {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;$emit&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;status-changed&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;response&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;data&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;notes&lt;/span&gt;);
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;updateNotes&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;notes&lt;/span&gt;) {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;notes&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;notes&lt;/span&gt;;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;3-using-websockets-and-event-broadcasting&#34;&gt;#3 Using WebSockets and event broadcasting&lt;/h3&gt;
+&lt;p&gt;Way #3 is easier on the front-end side. The two things are independent here:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Sending a request to the API for updating a task&amp;rsquo;s status.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Listening for any update in notes.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Once we set up an Echo listener, it will update the &lt;code&gt;notes&lt;/code&gt; array whenever there&amp;rsquo;s an appropriate change on the back-end.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;Echo&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;channel&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;notes&amp;#39;&lt;/span&gt;)
+    .&lt;span style=&#34;color:#a6e22e&#34;&gt;listen&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;NoteListNumsOfTasksUpdated&amp;#39;&lt;/span&gt;, (&lt;span style=&#34;color:#a6e22e&#34;&gt;data&lt;/span&gt;) =&amp;gt; {
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;notes&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;data&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;notes&lt;/span&gt;;
+    });
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And we can just send requests to the API whenever we need.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;axios&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;put&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;url&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;data&lt;/span&gt;);
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This way, the code for updating a task status can be separated from the code for updating &amp;ldquo;NoT&amp;rdquo; badges.&lt;/p&gt;
+&lt;p&gt;If that doesn&amp;rsquo;t seem very impressive, well, WebSockets payloads are quite smaller.&lt;/p&gt;
+&lt;p&gt;But there&amp;rsquo;s still work to do. We need to create events and listeners on the Laravel end. And that might make way #3 seem like a lot more work than the earlier ways, yet I chose it because WebSockets seemed better to me than the site getting bogged down due to many unfinished HTTP requests.&lt;/p&gt;
+&lt;p&gt;And don&amp;rsquo;t forget, the payloads are smaller.&lt;/p&gt;
+&lt;h2 id=&#34;event-listeners-for-updating-not-badges&#34;&gt;Event listeners for updating &amp;ldquo;NoT&amp;rdquo; badges&lt;/h2&gt;
+&lt;p&gt;We already have a &lt;code&gt;TaskUpdated&lt;/code&gt; event. But it broadcasts data to update the &lt;em&gt;task list&lt;/em&gt;. We need to update the &lt;em&gt;note list&lt;/em&gt;. Can an event broadcast multiple sets of data on different channels? Maybe. &lt;code&gt;broadcastWith()&lt;/code&gt; returns an array, and &lt;code&gt;broadcastOn&lt;/code&gt; can return an array. Maybe the sequence of channel names and data matches up? Or maybe the entire data array is broadcast on all the specified channels.&lt;/p&gt;
+&lt;p&gt;I didn&amp;rsquo;t dig deeper that way. Instead, (after reading up on listeners) it seemed it&amp;rsquo;d be cleaner if there was a listener just for updating &amp;ldquo;NoT&amp;rdquo; badges. But Echo listens to &lt;em&gt;events&lt;/em&gt;, not listeners. So, the listener would have to emit another event.&lt;/p&gt;
+&lt;p&gt;This made sense. Rather than listening to a catch-all &amp;ldquo;TaskUpdated&amp;rdquo; event for both updating the task list and updating the note list, each should get a separate event.&lt;/p&gt;
+&lt;p&gt;So, here&amp;rsquo;s how things turned out:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt; Laravel          Laravel                                       Front-end
+controller        listener                        Echo                |
+   |                 |                              |                 |
+   |                 |                              |                 |
+   |&amp;lt;--------------------- Task status changes -----------------------|
+   |                 |                              |                 |
+   |  &amp;quot;TaskUpdated&amp;quot;  |                              |     Updates     |
+   |----------------&amp;gt;|---- Data for task list -----&amp;gt;|----------------&amp;gt;|
+   |     event       |                              |    task list    |
+   |                 |                              |                 |
+   |                 |                              |     Updates     |
+   |                 |---- Data for note list -----&amp;gt;|----------------&amp;gt;|
+   |                 |                              |  &amp;quot;NoT&amp;quot; badges   |
+   |                 |                              |                 |
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This is what I did at first. But the payload was too large since &lt;code&gt;NoteListNumsOfTasksUpdated&lt;/code&gt; was sending data for the entire note list. Plus, the event and the controller both had to be sending data in the same format, which made it difficult to maintain properly later.&lt;/p&gt;
+&lt;p&gt;This was definitely not cleaner.&lt;/p&gt;
+&lt;h2 id=&#34;event-listeners-for-updating-not-badges-but-better&#34;&gt;Event listeners for updating &amp;ldquo;NoT&amp;rdquo; badges, but better&lt;/h2&gt;
+&lt;p&gt;Behold the &lt;code&gt;TaskStatusChanged&lt;/code&gt; event that broadcasts whatever data it is passed! And the listener passes it an object with only two properties: a note ID and the number of pending tasks for that note. So, the payload become much smaller.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-php&#34; data-lang=&#34;php&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;function&lt;/span&gt; __construct($data, $channelName, $channelType &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;public&amp;#39;&lt;/span&gt;) {
+    $this&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;data&lt;/span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;is_array&lt;/span&gt;($data) &lt;span style=&#34;color:#f92672&#34;&gt;?&lt;/span&gt; [] &lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; $data;
+    $this&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;channelName&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!&lt;/span&gt;$channelName    &lt;span style=&#34;color:#f92672&#34;&gt;?&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; $channelName;
+    $this&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;channelType&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!&lt;/span&gt;$channelType    &lt;span style=&#34;color:#f92672&#34;&gt;?&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; $channelType;
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;function&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;broadcastOn&lt;/span&gt;() {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; ($this&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;channelName&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!==&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt;) {
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; ($this&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;channelType&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;===&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;public&amp;#39;&lt;/span&gt;) {
+            &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;new&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Channel&lt;/span&gt;( $this&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;channelName&lt;/span&gt; );
+        }
+    }
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;function&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;broadcastWith&lt;/span&gt;() {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; $this&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;data&lt;/span&gt;;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The structure of &lt;code&gt;TaskStatusChanged&lt;/code&gt; has to be this way. Since the name is a generic one, it might get used for other purposes in future. So, instead of restricting the class now and change again later, it&amp;rsquo;s better to make it flexible from the start.&lt;/p&gt;
+&lt;p&gt;Also, all the case-specific code is in the listener now. &lt;code&gt;UpdateNotBadge&lt;/code&gt; - a listener made for a specific purpose - now listens to &lt;code&gt;TaskUpdated&lt;/code&gt; - an event that may be fired by various causes - and broadcasts some specific data via an event. Echo will be able to identify different cases based on channel names.&lt;/p&gt;
+&lt;p&gt;So, now, for any future change we need to make that&amp;rsquo;s related to updating &amp;ldquo;NoT&amp;rdquo; badges, we&amp;rsquo;ll only have to modify the &lt;code&gt;UpdateNotBadge&lt;/code&gt; listener which is not at all likely to be modified for some other purpose. And if we ever change the &amp;ldquo;NoT&amp;rdquo; badges system entirely, we&amp;rsquo;ll just remove the listener from &lt;code&gt;EventServiceProvider.php&lt;/code&gt; and then delete the &lt;code&gt;UpdateNotBadge.php&lt;/code&gt; file. &lt;code&gt;TaskStatusChanged&lt;/code&gt; will never even know about it.&lt;/p&gt;
+&lt;p&gt;The problem of returning data in the same format from multiple places is solved here, though not because of anything WebSockets does. The only argument against returning a single note&amp;rsquo;s data could be that a loop is needed in Vue. But that&amp;rsquo;s a lot better than broadcasting data for all notes (a large payload) every time.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;Echo&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;channel&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;notes&amp;#39;&lt;/span&gt;)
+    .&lt;span style=&#34;color:#a6e22e&#34;&gt;listen&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;TaskStatusChanged&amp;#39;&lt;/span&gt;, (&lt;span style=&#34;color:#a6e22e&#34;&gt;note&lt;/span&gt;) =&amp;gt; {
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;updateNotBadgeNumber&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;note&lt;/span&gt;);
+    });
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;updateNotBadgeNumber&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;updatedNote&lt;/span&gt;) {
+
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;notes&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;length&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;; &lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;; &lt;span style=&#34;color:#f92672&#34;&gt;--&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt;) {
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;note&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;notes&lt;/span&gt;[&lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt;];
+
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;note&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;id&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;===&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;updatedNote&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;id&lt;/span&gt;) { &lt;span style=&#34;color:#75715e&#34;&gt;// Matching note&amp;#39;s badge is updated
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;            &lt;span style=&#34;color:#a6e22e&#34;&gt;note&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;numOfPendingTasks&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;updatedNote&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;numOfPendingTasks&lt;/span&gt;;
+            &lt;span style=&#34;color:#66d9ef&#34;&gt;break&lt;/span&gt;;
+        }
+
+    }
+
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Logic is separate inside a specific listener, payload is smaller, everyone is happy.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Building a to-do list app (part 5)</title>
+      <link>https://nr072.github.io/blog/posts/projects/mantle/building-a-todo-list-app-part-5/</link>
+      <pubDate>Wed, 19 May 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://nr072.github.io/blog/posts/projects/mantle/building-a-todo-list-app-part-5/</guid>
+      <description>&lt;h2 id=&#34;editors-constantly-watch-passed-task-data&#34;&gt;Editors constantly &amp;ldquo;watch&amp;rdquo; passed task data&lt;/h2&gt;
+&lt;p&gt;Remember we faced this problem where task editors had no way of knowing if tasks updated and they kept showing old values even if tasks did update? We must have. At least I did.&lt;/p&gt;
+&lt;p&gt;Well, there&amp;rsquo;s an easy way to fix that. By &amp;ldquo;watching&amp;rdquo; the task name and due time.&lt;/p&gt;
+&lt;p&gt;So, task editors may or may not get passed those values. At the very beginning, the passed data is set to the properties in &lt;code&gt;data&lt;/code&gt;. After that, every time name and due time changes, the &lt;code&gt;data&lt;/code&gt; properties are reset again.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;mounted&lt;/span&gt;() {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;resetInputs&lt;/span&gt;();
+},
+
+&lt;span style=&#34;color:#a6e22e&#34;&gt;watch&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; {
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;currentName&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;function&lt;/span&gt;() {
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;resetInputs&lt;/span&gt;();
+    },
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;currentDueTime&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;function&lt;/span&gt;() {
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;resetInputs&lt;/span&gt;();
+    }
+},
+
+&lt;span style=&#34;color:#a6e22e&#34;&gt;methods&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; {
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;resetInputs&lt;/span&gt;() {
+        &lt;span style=&#34;color:#75715e&#34;&gt;//
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Although the name is kind of misleading, &lt;code&gt;resetInputs()&lt;/code&gt; sets the property values to whatever data is passed (task editor) or to empty strings if no data is passed (task adder, or task editor but with no due time):&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;resetInputs&lt;/span&gt;() {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;newName&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;currentName&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;||&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt;;
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;currentDueTime&lt;/span&gt;) {
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;newDate&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;paddedDateString&lt;/span&gt;;
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;newTime&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;trimmedTimeString&lt;/span&gt;;
+    } &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt; {
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;newDate&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt;;
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;newTime&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt;;
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And since the only way the data passed to a task editor can change is if there was a fresh fetch somewhere up in the hierarchy, the pre-fill values in the editor&amp;rsquo;s input fields are always the right values.&lt;/p&gt;
+&lt;h2 id=&#34;notification-area&#34;&gt;Notification area&lt;/h2&gt;
+&lt;p&gt;An app must show what is happening. Imagine clicking the &amp;ldquo;confirm&amp;rdquo; button and going away on your business, only to find out days later that your important email was not sent!&lt;/p&gt;
+&lt;p&gt;So, we need a notification area. At the very least, the user needs to see a message when they&amp;rsquo;ve successfully done something (edited/removed a task or parts of it) or thought they&amp;rsquo;ve successfully done something but actually something went wrong.&lt;/p&gt;
+&lt;p&gt;This needs rearranging the Vue components. Since the notification area can&amp;rsquo;t be a part of just the task list, what we&amp;rsquo;re looking for will look like this (this is just a representation, not the actual content of an HTML page):&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;&amp;lt;div id=&amp;quot;app&amp;quot;&amp;gt;
+
+    &amp;lt;notification-area&amp;gt;&amp;lt;/notification-area&amp;gt;
+
+    &amp;lt;task-list&amp;gt;
+        &amp;lt;task&amp;gt;
+            ...
+            &amp;lt;task-editor&amp;gt;&amp;lt;/task-editor&amp;gt;
+        &amp;lt;/task&amp;gt;
+        &amp;lt;task&amp;gt;
+            ...
+            &amp;lt;task-editor&amp;gt;&amp;lt;/task-editor&amp;gt;
+        &amp;lt;/task&amp;gt;
+        ...
+    &amp;lt;/task-list&amp;gt;
+
+    &amp;lt;task-adder&amp;gt;&amp;lt;/task-adder&amp;gt;
+
+&amp;lt;/div&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;code&gt;TaskList&lt;/code&gt; can cause a notification because there may be a network error while fetching tasks. Task editors and the task adder can throw errors if the user provides invalid inputs, or show a success message if a task is edited or added successfully.&lt;/p&gt;
+&lt;p&gt;That means we need to wrap them with another component like this (representation again):&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;&amp;lt;div id=&amp;quot;app&amp;quot;&amp;gt;
+
+    &amp;lt;app&amp;gt;
+        &amp;lt;notification-area&amp;gt;&amp;lt;/notification-area&amp;gt;
+        &amp;lt;task-list&amp;gt;&amp;lt;/task-list&amp;gt;
+        &amp;lt;task-adder&amp;gt;&amp;lt;/task-adder&amp;gt;
+    &amp;lt;/app&amp;gt;
+
+&amp;lt;/div&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Now, all child components can emit events when something good or bad happens, and &lt;code&gt;App&lt;/code&gt; will catch them and pass the message to the &lt;code&gt;NotificationArea&lt;/code&gt; component (or clear the existing notification when necessary).&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;Check out Mantle on GitHub &lt;a href=&#34;https://github.com/nr072/mantle&#34;target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;here&lt;/a&gt;
+&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Building a to-do list app (part 4)</title>
-      <link>https://example.com/blog/posts/projects/mantle/building-a-todo-list-app-part-4/</link>
+      <link>https://nr072.github.io/blog/posts/projects/mantle/building-a-todo-list-app-part-4/</link>
       <pubDate>Thu, 13 May 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://example.com/blog/posts/projects/mantle/building-a-todo-list-app-part-4/</guid>
+      <guid>https://nr072.github.io/blog/posts/projects/mantle/building-a-todo-list-app-part-4/</guid>
       <description>&lt;h2 id=&#34;reusing-the-taskeditor-component&#34;&gt;Reusing the &lt;code&gt;TaskEditor&lt;/code&gt; component&lt;/h2&gt;
 &lt;p&gt;The edit section for tasks and the section for adding a new tasks has lots of similarities. I decided to use the &lt;code&gt;TaskEditor&lt;/code&gt; component for both. The main difference, in terms of passing data, is that task adders don&amp;rsquo;t get existing task name or due time.&lt;/p&gt;
 &lt;table&gt;
@@ -161,10 +566,10 @@ Laravel server             WebSockets server                 Echo  |
     
     <item>
       <title>Building a to-do list app (part 3)</title>
-      <link>https://example.com/blog/posts/projects/mantle/building-a-todo-list-app-part-3/</link>
+      <link>https://nr072.github.io/blog/posts/projects/mantle/building-a-todo-list-app-part-3/</link>
       <pubDate>Sun, 09 May 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://example.com/blog/posts/projects/mantle/building-a-todo-list-app-part-3/</guid>
+      <guid>https://nr072.github.io/blog/posts/projects/mantle/building-a-todo-list-app-part-3/</guid>
       <description>&lt;h2 id=&#34;min-max-date-selection-range&#34;&gt;Min-max date selection range&lt;/h2&gt;
 &lt;p&gt;The &lt;code&gt;&amp;lt;input type=&amp;quot;date&amp;quot;&amp;gt;&lt;/code&gt; field allows the user to select any date within 1 year in the future. That may sound ridiculous, but let&amp;rsquo;s stick with it for now. (Anything later than a month should go to a calendar. But I may have plans to add a feature to categorize some tasks.)&lt;/p&gt;
 &lt;p&gt;Regardless of how far the maximum date should be, the fact remains that there should be a maximum date and it should be the same for all tasks. Which means a single value should be passed to all instances of the &lt;code&gt;Task&lt;/code&gt; component.&lt;/p&gt;
@@ -229,10 +634,10 @@ Laravel server             WebSockets server                 Echo  |
     
     <item>
       <title>Building a to-do list app (part 2)</title>
-      <link>https://example.com/blog/posts/projects/mantle/building-a-todo-list-app-part-2/</link>
+      <link>https://nr072.github.io/blog/posts/projects/mantle/building-a-todo-list-app-part-2/</link>
       <pubDate>Fri, 07 May 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://example.com/blog/posts/projects/mantle/building-a-todo-list-app-part-2/</guid>
+      <guid>https://nr072.github.io/blog/posts/projects/mantle/building-a-todo-list-app-part-2/</guid>
       <description>&lt;p&gt;Although the &amp;ldquo;tasks&amp;rdquo; table has more columns, the very basic functionalities will be concerned with task names and due times. The API will return a bunch of names and times, and Vue will show them on the web page.&lt;/p&gt;
 &lt;p&gt;An important thing to note is that I put the call to the API to fetch tasks in the &lt;a href=&#34;https://vuejs.org/v2/api/#created&#34;target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;&lt;code&gt;created&lt;/code&gt; life-cycle hook&lt;/a&gt;
  this time. I used to do the initial API call in the &lt;a href=&#34;https://vuejs.org/v2/api/#mounted&#34;target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;&lt;code&gt;mounted&lt;/code&gt; hook&lt;/a&gt;
@@ -381,10 +786,10 @@ Laravel server             WebSockets server                 Echo  |
     
     <item>
       <title>Building a to-do list app (part 1)</title>
-      <link>https://example.com/blog/posts/projects/mantle/building-a-todo-list-app-part-1/</link>
+      <link>https://nr072.github.io/blog/posts/projects/mantle/building-a-todo-list-app-part-1/</link>
       <pubDate>Thu, 06 May 2021 06:00:00 +0600</pubDate>
       
-      <guid>https://example.com/blog/posts/projects/mantle/building-a-todo-list-app-part-1/</guid>
+      <guid>https://nr072.github.io/blog/posts/projects/mantle/building-a-todo-list-app-part-1/</guid>
       <description>&lt;p&gt;Since most of my previous works have been either too simple or too customized (for personal use), I&amp;rsquo;m starting this project with a wider audience in mind. The goal is to create an interactive to-do list app. Users will be able to see &amp;ldquo;tasks&amp;rdquo;, set times, and add, edit, and delete tasks and so on. You know the type.&lt;/p&gt;
 &lt;p&gt;This is still simplistic and driven by personal needs. And it&amp;rsquo;s too common an idea. But it&amp;rsquo;s better to start with something easy than losing motivation halfway, before anything significant is done.&lt;/p&gt;
 &lt;h1 id=&#34;technologies&#34;&gt;Technologies&lt;/h1&gt;

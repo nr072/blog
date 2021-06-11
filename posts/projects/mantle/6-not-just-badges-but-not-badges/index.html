@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en"><meta charset="utf-8"><meta name="generator" content="Hugo 0.83.1" /><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark"><title>Part 6: Not just badges, but &#34;NoT&#34; badges!&nbsp;&ndash;&nbsp;Coding Harder</title><link rel="stylesheet" href="/blog/css/core.min.5b04986dee02f0d1305e9389c680a2eed3cea02c04640ac17d6643bacbc4b765d77e2b6e6b63b862d55560f00c92e9c0.css" integrity="sha384-WwSYbe4C8NEwXpOJxoCi7tPOoCwEZArBfWZDusvEt2XXfitua2O4YtVVYPAMkunA"><meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Part 6: Not just badges, but &#34;NoT&#34; badges!" /><body><section id="header">
+    <div class="header wrap"><span class="header left-side"><a class="site home" href="/blog/"><span class="site name">Coding Harder</span></a></span>
+        <span class="header right-side"></span></div></section><section id="content"><div class="article-container"><section class="article header">
+    <h1 class="article title">Part 6: Not just badges, but "NoT" badges!</h1><p class="article date">2021-05-25</p></section><article class="article markdown-body"><h2 id="not-badges">&ldquo;NoT&rdquo; badges</h2>
+<p>There are two card-like distinct sections on the UI now. For simplicity&rsquo;s sake, let&rsquo;s call them &ldquo;cards&rdquo; until the UI changes. The left one (top in mobile view) is the &ldquo;task card&rdquo;, and the right one is the &ldquo;note card&rdquo;. As their names suggest, the task card shows a list of tasks, and the note card shows a list of notes.</p>
+<p>On page load, the note card shows a list of available note names. (It currently shows all notes. Will need some logic for showing some specific notes only, for example, the last-modified 10 notes, or 5 &ldquo;pinned&rdquo; ones and the last-modified 5. But I haven&rsquo;t decided on that yet.) The task card shows nothing except a button for creating new tasks on page load. If a note name on the note card is clicked, the tasks that belong to that note are shown on the task card. Pretty straight-forward, intuitive UI.</p>
+<p>Beside each note name on the note card, a number may be shown in the form of a badge. This is, currently, the number of &ldquo;pending&rdquo; tasks for that note. I&rsquo;m calling these badges &ldquo;Not&rdquo; badge. &ldquo;NoT&rdquo; here is a dumb acronym for &ldquo;number of tasks&rdquo;.</p>
+<p>It might have been a lot better to call them &ldquo;pending badges&rdquo;, but I&rsquo;m planning to show the number of &ldquo;done&rdquo; tasks too there. This will be due to personal preferences, since I don&rsquo;t think many people would want both numbers there. Seems like Mantle will need a &ldquo;preferences&rdquo; feature to show/hide &ldquo;done&rdquo; badges.</p>
+<h2 id="updating-not-badges">Updating &ldquo;NoT&rdquo; badges</h2>
+<p>These badges need to update in real-time as the user marks tasks as &ldquo;done&rdquo; or &ldquo;pending&rdquo;. There are a few ways to do that:</p>
+<ol>
+<li>
+<p>Updating data directly in the Vue instance after the request to the API (for updating a task&rsquo;s status) has succeeded.</p>
+</li>
+<li>
+<p>Sending a &ldquo;GET&rdquo; request for fetching notes after the request to the API has succeeded.</p>
+</li>
+<li>
+<p>Using WebSockets and Laravel&rsquo;s event broadcasting.</p>
+</li>
+</ol>
+<p>The choice might seem obvious, seeing how we&rsquo;re using Echo already. But only because we&rsquo;re using one thing doesn&rsquo;t mean we can&rsquo;t use anything else. The best way to do something is to use whatever tools do it best.</p>
+<h3 id="1-directly-updating-the-relevant-note-in-vue">#1 Directly updating the relevant note in Vue</h3>
+<p>Way #1 depends on whether the request to the API succeeded or not. We&rsquo;d need to check the response status and do the update in Vue data only if a success status was returned.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#a6e22e">axios</span>.<span style="color:#a6e22e">put</span>(<span style="color:#a6e22e">url</span>, <span style="color:#a6e22e">data</span>)
+    .<span style="color:#a6e22e">then</span>(<span style="color:#a6e22e">response</span> =&gt; {
+        <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">response</span>.<span style="color:#a6e22e">status</span> <span style="color:#f92672">===</span> <span style="color:#ae81ff">200</span>) {
+            <span style="color:#75715e">// Somehow directly update in Vue
+</span><span style="color:#75715e"></span>        }
+    })
+</code></pre></div><p>Updating Vue data would need some lines of code. Because, if we only checked the status to make sure the request succeeded, we&rsquo;d need to loop through Vue&rsquo;s <code>notes</code> array to find out which note&rsquo;s task status changed. (Remember, to update a &ldquo;NoT&rdquo; badge, we need to modify Vue&rsquo;s <code>notes</code> array which is in the <code>NoteList</code> Vue component, and the clicked task&rsquo;s ID would come from the <code>TaskList</code>component.)</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">response</span>.<span style="color:#a6e22e">status</span> <span style="color:#f92672">===</span> <span style="color:#ae81ff">200</span>) {
+    <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">$emit</span>(<span style="color:#e6db74">&#39;status-changed&#39;</span>, {
+        <span style="color:#a6e22e">id</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">response</span>.<span style="color:#a6e22e">data</span>.<span style="color:#a6e22e">noteId</span>,
+        <span style="color:#a6e22e">numOfPendingTasks</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">response</span>.<span style="color:#a6e22e">data</span>.<span style="color:#a6e22e">numOfPendingTasks</span>
+    });
+}
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#a6e22e">updateNotes</span>(<span style="color:#a6e22e">updatedNoteData</span>) {
+    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">let</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">notes</span>.<span style="color:#a6e22e">length</span> <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>; <span style="color:#a6e22e">i</span> <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span>; <span style="color:#f92672">--</span><span style="color:#a6e22e">i</span>) {
+        <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">note</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">notes</span>[<span style="color:#a6e22e">i</span>];
+        <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">note</span>.<span style="color:#a6e22e">id</span> <span style="color:#f92672">===</span> <span style="color:#a6e22e">updatedNoteData</span>.<span style="color:#a6e22e">id</span>) {
+            <span style="color:#a6e22e">note</span>.<span style="color:#a6e22e">numOfPendingTasks</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">updatedNoteData</span>.<span style="color:#a6e22e">numOfPendingTasks</span>;
+        }
+    }
+}
+</code></pre></div><h3 id="2-replacingupdating-the-entire-notes-array-in-vue">#2 Replacing/updating the entire <code>notes</code> array in Vue</h3>
+<p>Way #2 makes the second part of way #1 easier. Instead of finding which note should be updated, we get data for the entire note list and just replace it (like rebuilding a house instead of repairing a single room). This is easier than the first but the payload is much larger.</p>
+<p>By the way, this can be done without sending a separate &ldquo;GET&rdquo; request. The response would just have to return the array.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">response</span>.<span style="color:#a6e22e">status</span> <span style="color:#f92672">===</span> <span style="color:#ae81ff">200</span>) {
+    <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">$emit</span>(<span style="color:#e6db74">&#39;status-changed&#39;</span>, <span style="color:#a6e22e">response</span>.<span style="color:#a6e22e">data</span>.<span style="color:#a6e22e">notes</span>);
+}
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#a6e22e">updateNotes</span>(<span style="color:#a6e22e">notes</span>) {
+    <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">notes</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">notes</span>;
+}
+</code></pre></div><h3 id="3-using-websockets-and-event-broadcasting">#3 Using WebSockets and event broadcasting</h3>
+<p>Way #3 is easier on the front-end side. The two things are independent here:</p>
+<ul>
+<li>
+<p>Sending a request to the API for updating a task&rsquo;s status.</p>
+</li>
+<li>
+<p>Listening for any update in notes.</p>
+</li>
+</ul>
+<p>Once we set up an Echo listener, it will update the <code>notes</code> array whenever there&rsquo;s an appropriate change on the back-end.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#a6e22e">Echo</span>.<span style="color:#a6e22e">channel</span>(<span style="color:#e6db74">&#39;notes&#39;</span>)
+    .<span style="color:#a6e22e">listen</span>(<span style="color:#e6db74">&#39;NoteListNumsOfTasksUpdated&#39;</span>, (<span style="color:#a6e22e">data</span>) =&gt; {
+        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">notes</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">data</span>.<span style="color:#a6e22e">notes</span>;
+    });
+</code></pre></div><p>And we can just send requests to the API whenever we need.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#a6e22e">axios</span>.<span style="color:#a6e22e">put</span>(<span style="color:#a6e22e">url</span>, <span style="color:#a6e22e">data</span>);
+</code></pre></div><p>This way, the code for updating a task status can be separated from the code for updating &ldquo;NoT&rdquo; badges.</p>
+<p>If that doesn&rsquo;t seem very impressive, well, WebSockets payloads are quite smaller.</p>
+<p>But there&rsquo;s still work to do. We need to create events and listeners on the Laravel end. And that might make way #3 seem like a lot more work than the earlier ways, yet I chose it because WebSockets seemed better to me than the site getting bogged down due to many unfinished HTTP requests.</p>
+<p>And don&rsquo;t forget, the payloads are smaller.</p>
+<h2 id="event-listeners-for-updating-not-badges">Event listeners for updating &ldquo;NoT&rdquo; badges</h2>
+<p>We already have a <code>TaskUpdated</code> event. But it broadcasts data to update the <em>task list</em>. We need to update the <em>note list</em>. Can an event broadcast multiple sets of data on different channels? Maybe. <code>broadcastWith()</code> returns an array, and <code>broadcastOn</code> can return an array. Maybe the sequence of channel names and data matches up? Or maybe the entire data array is broadcast on all the specified channels.</p>
+<p>I didn&rsquo;t dig deeper that way. Instead, (after reading up on listeners) it seemed it&rsquo;d be cleaner if there was a listener just for updating &ldquo;NoT&rdquo; badges. But Echo listens to <em>events</em>, not listeners. So, the listener would have to emit another event.</p>
+<p>This made sense. Rather than listening to a catch-all &ldquo;TaskUpdated&rdquo; event for both updating the task list and updating the note list, each should get a separate event.</p>
+<p>So, here&rsquo;s how things turned out:</p>
+<pre><code> Laravel          Laravel                                       Front-end
+controller        listener                        Echo                |
+   |                 |                              |                 |
+   |                 |                              |                 |
+   |&lt;--------------------- Task status changes -----------------------|
+   |                 |                              |                 |
+   |  &quot;TaskUpdated&quot;  |                              |     Updates     |
+   |----------------&gt;|---- Data for task list -----&gt;|----------------&gt;|
+   |     event       |                              |    task list    |
+   |                 |                              |                 |
+   |                 |                              |     Updates     |
+   |                 |---- Data for note list -----&gt;|----------------&gt;|
+   |                 |                              |  &quot;NoT&quot; badges   |
+   |                 |                              |                 |
+</code></pre><p>This is what I did at first. But the payload was too large since <code>NoteListNumsOfTasksUpdated</code> was sending data for the entire note list. Plus, the event and the controller both had to be sending data in the same format, which made it difficult to maintain properly later.</p>
+<p>This was definitely not cleaner.</p>
+<h2 id="event-listeners-for-updating-not-badges-but-better">Event listeners for updating &ldquo;NoT&rdquo; badges, but better</h2>
+<p>Behold the <code>TaskStatusChanged</code> event that broadcasts whatever data it is passed! And the listener passes it an object with only two properties: a note ID and the number of pending tasks for that note. So, the payload become much smaller.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> __construct($data, $channelName, $channelType <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;public&#39;</span>) {
+    $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">data</span>        <span style="color:#f92672">=</span> <span style="color:#f92672">!</span><span style="color:#a6e22e">is_array</span>($data) <span style="color:#f92672">?</span> [] <span style="color:#f92672">:</span> $data;
+    $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">channelName</span> <span style="color:#f92672">=</span> <span style="color:#f92672">!</span>$channelName    <span style="color:#f92672">?</span> <span style="color:#e6db74">&#39;&#39;</span> <span style="color:#f92672">:</span> $channelName;
+    $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">channelType</span> <span style="color:#f92672">=</span> <span style="color:#f92672">!</span>$channelType    <span style="color:#f92672">?</span> <span style="color:#e6db74">&#39;&#39;</span> <span style="color:#f92672">:</span> $channelType;
+}
+
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">broadcastOn</span>() {
+    <span style="color:#66d9ef">if</span> ($this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">channelName</span> <span style="color:#f92672">!==</span> <span style="color:#e6db74">&#39;&#39;</span>) {
+        <span style="color:#66d9ef">if</span> ($this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">channelType</span> <span style="color:#f92672">===</span> <span style="color:#e6db74">&#39;public&#39;</span>) {
+            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">Channel</span>( $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">channelName</span> );
+        }
+    }
+}
+
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">broadcastWith</span>() {
+    <span style="color:#66d9ef">return</span> $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">data</span>;
+}
+</code></pre></div><p>The structure of <code>TaskStatusChanged</code> has to be this way. Since the name is a generic one, it might get used for other purposes in future. So, instead of restricting the class now and change again later, it&rsquo;s better to make it flexible from the start.</p>
+<p>Also, all the case-specific code is in the listener now. <code>UpdateNotBadge</code> - a listener made for a specific purpose - now listens to <code>TaskUpdated</code> - an event that may be fired by various causes - and broadcasts some specific data via an event. Echo will be able to identify different cases based on channel names.</p>
+<p>So, now, for any future change we need to make that&rsquo;s related to updating &ldquo;NoT&rdquo; badges, we&rsquo;ll only have to modify the <code>UpdateNotBadge</code> listener which is not at all likely to be modified for some other purpose. And if we ever change the &ldquo;NoT&rdquo; badges system entirely, we&rsquo;ll just remove the listener from <code>EventServiceProvider.php</code> and then delete the <code>UpdateNotBadge.php</code> file. <code>TaskStatusChanged</code> will never even know about it.</p>
+<p>The problem of returning data in the same format from multiple places is solved here, though not because of anything WebSockets does. The only argument against returning a single note&rsquo;s data could be that a loop is needed in Vue. But that&rsquo;s a lot better than broadcasting data for all notes (a large payload) every time.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#a6e22e">Echo</span>.<span style="color:#a6e22e">channel</span>(<span style="color:#e6db74">&#39;notes&#39;</span>)
+    .<span style="color:#a6e22e">listen</span>(<span style="color:#e6db74">&#39;TaskStatusChanged&#39;</span>, (<span style="color:#a6e22e">note</span>) =&gt; {
+        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">updateNotBadgeNumber</span>(<span style="color:#a6e22e">note</span>);
+    });
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#a6e22e">updateNotBadgeNumber</span>(<span style="color:#a6e22e">updatedNote</span>) {
+
+    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">let</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">notes</span>.<span style="color:#a6e22e">length</span> <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>; <span style="color:#a6e22e">i</span> <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span>; <span style="color:#f92672">--</span><span style="color:#a6e22e">i</span>) {
+        <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">note</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">notes</span>[<span style="color:#a6e22e">i</span>];
+
+        <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">note</span>.<span style="color:#a6e22e">id</span> <span style="color:#f92672">===</span> <span style="color:#a6e22e">updatedNote</span>.<span style="color:#a6e22e">id</span>) { <span style="color:#75715e">// Matching note&#39;s badge is updated
+</span><span style="color:#75715e"></span>            <span style="color:#a6e22e">note</span>.<span style="color:#a6e22e">numOfPendingTasks</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">updatedNote</span>.<span style="color:#a6e22e">numOfPendingTasks</span>;
+            <span style="color:#66d9ef">break</span>;
+        }
+
+    }
+
+}
+</code></pre></div><p>Logic is separate inside a specific listener, payload is smaller, everyone is happy.</p>
+</article>
+</div>
+<div class="article bottom"><section class="article navigation"><p><a class="link" href="/blog/posts/projects/mantle/7-theme-switching/"><span class="iconfont icon-article"></span>Part 7: Theme switching?</a></p><p><a class="link" href="/blog/posts/projects/mantle/building-a-todo-list-app-part-5/"><span class="iconfont icon-article"></span>Building a to-do list app (part 5)</a></p></section></div></section><section id="footer"><div class="footer-wrap">
+    <p class="copyright">Coding Harder</p>
+    <p class="powerby"><span>Powered&nbsp;by&nbsp;</span><a href="https://gohugo.io" 
+        target="_blank" rel="noopener noreferrer">Hugo</a><span>&nbsp;&amp;&nbsp;</span><a href="https://themes.gohugo.io/hugo-notepadium/" 
+        target="_blank" rel="noopener noreferrer">Notepadium</a></p></div>
+</section></body>
+
+</html>

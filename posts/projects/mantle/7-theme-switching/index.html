@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en"><meta charset="utf-8"><meta name="generator" content="Hugo 0.83.1" /><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark"><title>Part 7: Theme switching?&nbsp;&ndash;&nbsp;Coding Harder</title><link rel="stylesheet" href="/blog/css/core.min.5b04986dee02f0d1305e9389c680a2eed3cea02c04640ac17d6643bacbc4b765d77e2b6e6b63b862d55560f00c92e9c0.css" integrity="sha384-WwSYbe4C8NEwXpOJxoCi7tPOoCwEZArBfWZDusvEt2XXfitua2O4YtVVYPAMkunA"><meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Part 7: Theme switching?" /><body><section id="header">
+    <div class="header wrap"><span class="header left-side"><a class="site home" href="/blog/"><span class="site name">Coding Harder</span></a></span>
+        <span class="header right-side"></span></div></section><section id="content"><div class="article-container"><section class="article header">
+    <h1 class="article title">Part 7: Theme switching?</h1><p class="article date">2021-06-02</p></section><article class="article markdown-body"><p>The UI is too white. A good app should have a theme switching feature. A high contrast theme is necessary for accessibility.</p>
+<p>Though I only want the dark theme now.</p>
+<p>There are a few ways to implement theme switching. I like CSS approaches because they&rsquo;re usually simpler. But since we&rsquo;re using Vue, I want to make use of it.</p>
+<h2 id="using-vue">Using Vue</h2>
+<p>The current UI can be considered as the light theme. For the dark theme, we basically need a dark background and white text.</p>
+<p>Actually, we&rsquo;ll need several dark backgrounds. At least two in the current situation: one for the page background and one for the cards. Thanks to Bulma, this can be done easily by replacing CSS classes in a few places.</p>
+<p>The (kind of) &ldquo;before&rdquo; and &ldquo;after&rdquo; of the HTML:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">&lt;<span style="color:#f92672">body</span> <span style="color:#a6e22e">class</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;has-background-white-ter&#34;</span>&gt;
+    ...
+    &lt;<span style="color:#f92672">div</span> <span style="color:#a6e22e">class</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;card has-background-white-bis&#34;</span>&gt;
+        ...
+    &lt;/<span style="color:#f92672">div</span>&gt;
+    ...
+&lt;/<span style="color:#f92672">body</span>&gt;
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">&lt;<span style="color:#f92672">body</span> <span style="color:#a6e22e">class</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;has-background-dark&#34;</span>&gt;
+    ...
+    &lt;<span style="color:#f92672">div</span> <span style="color:#a6e22e">class</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;card has-background-grey-dark has-text-light&#34;</span>&gt;
+        ...
+        &lt;<span style="color:#f92672">p</span> <span style="color:#a6e22e">class</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;card-header-title has-text-light&#34;</span>&gt;
+            ...
+        &lt;/<span style="color:#f92672">p</span>&gt;
+        ...
+    &lt;/<span style="color:#f92672">div</span>&gt;
+    ...
+&lt;/<span style="color:#f92672">body</span>&gt;
+</code></pre></div><p>The buttons and input fields can be easily changed since Bulma classes were used.</p>
+<p>So, we have a handful of classes for each theme. Now all we need is something that can set the class names based on the value of a certain variable.</p>
+<p>Inside <code>App.vue</code>, we can add an <code>isDarkTheme</code> property that will have <code>false</code> as the default value. Then the classes can be added based on its value:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-vue" data-lang="vue">&lt;<span style="color:#f92672">div</span> <span style="color:#a6e22e">class</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;card&#34;</span>
+    <span style="color:#f92672">:</span><span style="color:#a6e22e">class</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;&#39;has-background-&#39; + (isDarkTheme ? &#39;white-bis&#39; : &#39;grey-dark&#39;)&#34;</span>
+    <span style="color:#f92672">:</span><span style="color:#a6e22e">class</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;{ &#39;has-text-light&#39; : isDarkTheme }&#34;</span>
+&gt;
+    ...
+    &lt;<span style="color:#f92672">p</span> <span style="color:#a6e22e">class</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;card-header-title&#34;</span> <span style="color:#f92672">:</span><span style="color:#a6e22e">class</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;{ &#39;has-text-light&#39; : isDarkTheme }&#34;</span>&gt;
+        ...
+    &lt;/<span style="color:#f92672">p</span>&gt;
+    ...
+&lt;/<span style="color:#f92672">div</span>&gt;
+</code></pre></div><p>You should&rsquo;ve noticed a problem already. The <code>&lt;body&gt;</code> tag is out of reach of the <code>App</code> component.</p>
+<p>We can solve that by removing the background color from <code>&lt;body&gt;</code> and adding it to the element immediately inside the <code>App</code> component&rsquo;s template. Some other CSS modifications will be necessary.</p>
+<p>Now if we add a checkbox connected to <code>isDarkTheme</code> with a <code>v-model</code> attribute, themes can be easily switched by simply checking and unchecking it.</p>
+<p>Except not inside child components.</p>
+<p><code>isDarkTheme</code> is a property of <code>App</code> and doesn&rsquo;t automatically get passed to child components. So, they have no way of knowing when the checkbox is checked or unchecked. This can be solved by passing <code>isDarkTheme</code> as a prop to all child components, and they&rsquo;ll pass it to all their child components and so on until the end of the world.</p>
+<p>Seems a lot of work.</p>
+<p>(I know there are lots of theme switching methods crowding the street out there. But I want to try to solve the problem myself and see what I come up with, what problems I face, etc.)</p>
+<h2 id="back-to-css">Back to CSS</h2>
+<p>The CSS way I&rsquo;ve been using is rather plain. And it limits the HTML structure a bit.</p>
+<p>It&rsquo;s done using a checkbox and the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Adjacent_sibling_combinator"target="_blank" rel="noopener noreferrer">CSS adjacent sibling combinator</a>
+ to switch styles. We add a checkbox before the superdupercontainer that contains everything of the webpage. Then, when the checkbox is checked, a certain type of style is applied to the descendants of the container; and when it&rsquo;s unchecked, a different type of style is applied to the descendants.</p>
+<p>In Mantle&rsquo;s case, it&rsquo;d look like this:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">&lt;<span style="color:#f92672">body</span>&gt;
+
+    &lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;checkbox&#34;</span> <span style="color:#a6e22e">id</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;theme-switcher&#34;</span>&gt;
+
+    &lt;<span style="color:#f92672">div</span> <span style="color:#a6e22e">id</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;app&#34;</span>&gt;
+        ...
+    &lt;/<span style="color:#f92672">div</span>&gt;
+
+&lt;/<span style="color:#f92672">body</span>&gt;
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css">.<span style="color:#a6e22e">card</span> {
+    <span style="color:#66d9ef">background-color</span>: <span style="color:#66d9ef">white</span>;
+}
+
+#theme-switcher<span style="color:#f92672">[</span><span style="color:#f92672">checked</span><span style="color:#f92672">]</span> <span style="color:#f92672">+</span> #app .<span style="color:#a6e22e">card</span> {
+    <span style="color:#66d9ef">background-color</span>: <span style="color:#66d9ef">black</span>;
+}
+</code></pre></div><p>But this means lots of selectors must have <code>#theme-switcher[checked] + #app</code> added in front of them, which looks bad.</p>
+<p>And, more importantly, we lose the ease of using Bulma&rsquo;s classes. When using the JS approach, we were just changing the class names and everything would look nicely different. Here, we&rsquo;ll have to manually write the CSS code. Then what&rsquo;s the point of Bulma?</p>
+<p>So, this is a no-go.</p>
+<h2 id="now-what">Now what?</h2>
+<p>If we want to use Bulma, seems like we must use Vue. Can we bypass the eternal prop-passing somehow?</p>
+<p><em>To be pursued later</em></p>
+<p>(I don&rsquo;t want dark theme now anymore. All the colors I used were set thinking of light backgrounds. Every little badge is waging wars with the dark colors now. I need to pick some colors first, and that&rsquo;s a job for another day.</p>
+<p>Goes to show why you should plan first (even a little).)</p>
+<hr>
+<p>Check out Mantle on GitHub <a href="https://github.com/nr072/mantle"target="_blank" rel="noopener noreferrer">here</a>
+</p>
+</article>
+</div>
+<div class="article bottom"><section class="article navigation"><p><a class="link" href="/blog/posts/projects/mantle/8-problem-returning-same-data-from-multiple-places/"><span class="iconfont icon-article"></span>Part 8: Problem - returning same data from multiple places</a></p><p><a class="link" href="/blog/posts/projects/mantle/6-not-just-badges-but-not-badges/"><span class="iconfont icon-article"></span>Part 6: Not just badges, but "NoT" badges!</a></p></section></div></section><section id="footer"><div class="footer-wrap">
+    <p class="copyright">Coding Harder</p>
+    <p class="powerby"><span>Powered&nbsp;by&nbsp;</span><a href="https://gohugo.io" 
+        target="_blank" rel="noopener noreferrer">Hugo</a><span>&nbsp;&amp;&nbsp;</span><a href="https://themes.gohugo.io/hugo-notepadium/" 
+        target="_blank" rel="noopener noreferrer">Notepadium</a></p></div>
+</section></body>
+
+</html>

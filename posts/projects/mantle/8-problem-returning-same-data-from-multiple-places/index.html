@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en"><meta charset="utf-8"><meta name="generator" content="Hugo 0.83.1" /><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark"><title>Part 8: Problem - returning same data from multiple places&nbsp;&ndash;&nbsp;Coding Harder</title><link rel="stylesheet" href="/blog/css/core.min.5b04986dee02f0d1305e9389c680a2eed3cea02c04640ac17d6643bacbc4b765d77e2b6e6b63b862d55560f00c92e9c0.css" integrity="sha384-WwSYbe4C8NEwXpOJxoCi7tPOoCwEZArBfWZDusvEt2XXfitua2O4YtVVYPAMkunA"><meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Part 8: Problem - returning same data from multiple places" /><body><section id="header">
+    <div class="header wrap"><span class="header left-side"><a class="site home" href="/blog/"><span class="site name">Coding Harder</span></a></span>
+        <span class="header right-side"></span></div></section><section id="content"><div class="article-container"><section class="article header">
+    <h1 class="article title">Part 8: Problem - returning same data from multiple places</h1><p class="article date">2021-06-03</p></section><article class="article markdown-body"><p>The task card shows a list of related tasks when a note is clicked (&ldquo;opened&rdquo;). If a task data is modified when it&rsquo;s shown on the task card, it updates in real-time. Here I ran into an issue.</p>
+<p>Every time a task data is modified, a Laravel event broadcasts the entire list of tasks to Echo, for updating the task list. Since the returned array directly replaces Vue&rsquo;s reactive <code>tasks</code> array, it needs to be in the same format as the original array. Which means the same code needs to return data in both cases: for the original array that a controller function returns on page load, and for the array the Laravel event returns every time there&rsquo;s a modification.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php">$tasks <span style="color:#f92672">=</span> <span style="color:#a6e22e">Task</span><span style="color:#f92672">::</span><span style="color:#a6e22e">orderByRaw</span>(
+        <span style="color:#e6db74">&#39;is_done, due_time is null,
+</span><span style="color:#e6db74">        due_time,
+</span><span style="color:#e6db74">        created_at desc&#39;</span>
+    )
+    <span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">select</span>(
+        <span style="color:#e6db74">&#39;id&#39;</span>,
+        <span style="color:#e6db74">&#39;name&#39;</span>,
+        <span style="color:#e6db74">&#39;due_time as dueTimeUtc&#39;</span>,
+        <span style="color:#e6db74">&#39;is_done as isDone&#39;</span>
+    )
+    <span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">limit</span>(<span style="color:#ae81ff">20</span>)
+    <span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">get</span>();
+</code></pre></div><p>Even though the code to get data for the task list is relatively simple, keeping the same code in multiple places makes it very hard to change anything later. Every time there&rsquo;s a change in the array structure, the change will have to made in all the places. This not only is redundant but also causes error that are hard to catch. Just forgetting to make changes in one place can have you looking into half the project files.</p>
+<p>Imagine what happens with complex code.</p>
+<p>So, there must be a way to use the same code from multiple places.</p>
+<h2 id="a-few-possible-ways">A few possible ways</h2>
+<p>With some help from my limited knowledge of Laravel, I instantly thought these ways:</p>
+<ol>
+<li>
+<p>Making an <code>app()-&gt;call()</code> call inside the event.</p>
+</li>
+<li>
+<p>Passing <code>$tasks</code> to the event in the <code>::dispatch()</code> call.</p>
+</li>
+<li>
+<p>Using a global helper to get <code>$tasks</code> from both places.</p>
+</li>
+<li>
+<p>Using a model method to get <code>$tasks</code> from both places.</p>
+</li>
+</ol>
+<h3 id="1-app-call-inside-event">#1 <code>app()-&gt;call()</code> inside event</h3>
+<p>This is a pretty straightforward way. The controller&rsquo;s <code>index()</code> method will stay as is, and it&rsquo;ll be called from inside the event. This way, the single source of data still is the controller method.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php"><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">TaskUpdated</span> <span style="color:#66d9ef">implements</span> <span style="color:#a6e22e">ShouldBroadcast</span>
+{
+    <span style="color:#66d9ef">use</span> <span style="color:#a6e22e">Dispatchable</span>, <span style="color:#a6e22e">InteractsWithSockets</span>, <span style="color:#a6e22e">SerializesModels</span>;
+
+    <span style="color:#66d9ef">public</span> $tasks;
+
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> __construct()
+    {
+        $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">tasks</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">app</span>()<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">call</span>(<span style="color:#e6db74">&#39;App\Http\Controllers\TaskController@index&#39;</span>);
+    }
+
+}
+</code></pre></div><h3 id="2-parameter-of-dispatch">#2 Parameter of <code>::dispatch()</code></h3>
+<p>In this case, whichever controller method is supposed to fire the event calls the controller&rsquo;s <code>index()</code> method itself to obtain task data. And then it passes that data to the event.</p>
+<p>For example, when a task&rsquo;s data is modified, the <code>update()</code> method itself will get the array of tasks form <code>index()</code> and then simply pass it to <code>TaskUpdated::dispatch()</code> as a parameter:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">index</span>()
+{
+    <span style="color:#75715e">// Returns an array of tasks
+</span><span style="color:#75715e"></span>}
+
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">update</span>(<span style="color:#a6e22e">Task</span> $task)
+{
+    <span style="color:#75715e">// Code for updating the task
+</span><span style="color:#75715e"></span>
+    $tasks <span style="color:#f92672">=</span> $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">index</span>();
+    <span style="color:#a6e22e">TaskUpdated</span><span style="color:#f92672">::</span><span style="color:#a6e22e">dispatch</span>( $tasks );
+}
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> __construct($tasks)
+{
+    $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">tasks</span> <span style="color:#f92672">=</span> $tasks;
+}
+</code></pre></div><h3 id="3-global-helper-function">#3 Global helper function</h3>
+<p>Here, we move the source of data from <code>index()</code> to a global helper function, and then call the helper from both <code>index()</code> and the event.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">index</span>()
+{
+    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">tasksForTaskList</span>();
+}
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> __construct()
+{
+    $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">tasks</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">tasksForTaskList</span>();
+}
+</code></pre></div><h3 id="4-model-method">#4 Model method</h3>
+<p>Almost the same as a global helper except it&rsquo;s a model method.</p>
+<h2 id="so-which-one">So, which one?</h2>
+<p>The 4th way was instantly out of the question. Getting data on a specific number of tasks formatted in a specific way seemed too case-dependent for a <em>model</em> method. In fact, I didn&rsquo;t even test if it worked. And later I realized I probably misunderstood how models work.</p>
+<p>Using a global helper also didn&rsquo;t seem right. It seemed unnecessary, and it removed a very important part from the controller and put it in an almost random place.</p>
+<p>The other two ways seemed plausible, but it&rsquo;d probably depend on conventions or good practices as to which should be used. (Personally, I was leaning toward way #2.)</p>
+<hr>
+<p>Check out Mantle on GitHub <a href="https://github.com/nr072/mantle"target="_blank" rel="noopener noreferrer">here</a>
+</p>
+</article>
+</div>
+<div class="article bottom"><section class="article navigation"><p><a class="link" href="/blog/posts/misc/pardon-my-french-tabs-look-fat/"><span class="iconfont icon-article"></span>Firefox's Proton design: Pardon my French but the tabs look fat</a></p><p><a class="link" href="/blog/posts/projects/mantle/7-theme-switching/"><span class="iconfont icon-article"></span>Part 7: Theme switching?</a></p></section></div></section><section id="footer"><div class="footer-wrap">
+    <p class="copyright">Coding Harder</p>
+    <p class="powerby"><span>Powered&nbsp;by&nbsp;</span><a href="https://gohugo.io" 
+        target="_blank" rel="noopener noreferrer">Hugo</a><span>&nbsp;&amp;&nbsp;</span><a href="https://themes.gohugo.io/hugo-notepadium/" 
+        target="_blank" rel="noopener noreferrer">Notepadium</a></p></div>
+</section></body>
+
+</html>

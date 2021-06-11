@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en"><meta charset="utf-8"><meta name="generator" content="Hugo 0.83.1" /><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark"><title>Building a to-do list app (part 5)&nbsp;&ndash;&nbsp;Coding Harder</title><link rel="stylesheet" href="/blog/css/core.min.5b04986dee02f0d1305e9389c680a2eed3cea02c04640ac17d6643bacbc4b765d77e2b6e6b63b862d55560f00c92e9c0.css" integrity="sha384-WwSYbe4C8NEwXpOJxoCi7tPOoCwEZArBfWZDusvEt2XXfitua2O4YtVVYPAMkunA"><meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Building a to-do list app (part 5)" /><body><section id="header">
+    <div class="header wrap"><span class="header left-side"><a class="site home" href="/blog/"><span class="site name">Coding Harder</span></a></span>
+        <span class="header right-side"></span></div></section><section id="content"><div class="article-container"><section class="article header">
+    <h1 class="article title">Building a to-do list app (part 5)</h1><p class="article date">2021-05-19</p></section><article class="article markdown-body"><h2 id="editors-constantly-watch-passed-task-data">Editors constantly &ldquo;watch&rdquo; passed task data</h2>
+<p>Remember we faced this problem where task editors had no way of knowing if tasks updated and they kept showing old values even if tasks did update? We must have. At least I did.</p>
+<p>Well, there&rsquo;s an easy way to fix that. By &ldquo;watching&rdquo; the task name and due time.</p>
+<p>So, task editors may or may not get passed those values. At the very beginning, the passed data is set to the properties in <code>data</code>. After that, every time name and due time changes, the <code>data</code> properties are reset again.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#a6e22e">mounted</span>() {
+    <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">resetInputs</span>();
+},
+
+<span style="color:#a6e22e">watch</span><span style="color:#f92672">:</span> {
+    <span style="color:#a6e22e">currentName</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">function</span>() {
+        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">resetInputs</span>();
+    },
+    <span style="color:#a6e22e">currentDueTime</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">function</span>() {
+        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">resetInputs</span>();
+    }
+},
+
+<span style="color:#a6e22e">methods</span><span style="color:#f92672">:</span> {
+    <span style="color:#a6e22e">resetInputs</span>() {
+        <span style="color:#75715e">//
+</span><span style="color:#75715e"></span>    }
+}
+</code></pre></div><p>Although the name is kind of misleading, <code>resetInputs()</code> sets the property values to whatever data is passed (task editor) or to empty strings if no data is passed (task adder, or task editor but with no due time):</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#a6e22e">resetInputs</span>() {
+    <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">newName</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">currentName</span> <span style="color:#f92672">||</span> <span style="color:#e6db74">&#39;&#39;</span>;
+    <span style="color:#66d9ef">if</span> (<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">currentDueTime</span>) {
+        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">newDate</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">paddedDateString</span>;
+        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">newTime</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">trimmedTimeString</span>;
+    } <span style="color:#66d9ef">else</span> {
+        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">newDate</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;</span>;
+        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">newTime</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;</span>;
+    }
+}
+</code></pre></div><p>And since the only way the data passed to a task editor can change is if there was a fresh fetch somewhere up in the hierarchy, the pre-fill values in the editor&rsquo;s input fields are always the right values.</p>
+<h2 id="notification-area">Notification area</h2>
+<p>An app must show what is happening. Imagine clicking the &ldquo;confirm&rdquo; button and going away on your business, only to find out days later that your important email was not sent!</p>
+<p>So, we need a notification area. At the very least, the user needs to see a message when they&rsquo;ve successfully done something (edited/removed a task or parts of it) or thought they&rsquo;ve successfully done something but actually something went wrong.</p>
+<p>This needs rearranging the Vue components. Since the notification area can&rsquo;t be a part of just the task list, what we&rsquo;re looking for will look like this (this is just a representation, not the actual content of an HTML page):</p>
+<pre><code>&lt;div id=&quot;app&quot;&gt;
+
+    &lt;notification-area&gt;&lt;/notification-area&gt;
+
+    &lt;task-list&gt;
+        &lt;task&gt;
+            ...
+            &lt;task-editor&gt;&lt;/task-editor&gt;
+        &lt;/task&gt;
+        &lt;task&gt;
+            ...
+            &lt;task-editor&gt;&lt;/task-editor&gt;
+        &lt;/task&gt;
+        ...
+    &lt;/task-list&gt;
+
+    &lt;task-adder&gt;&lt;/task-adder&gt;
+
+&lt;/div&gt;
+</code></pre><p><code>TaskList</code> can cause a notification because there may be a network error while fetching tasks. Task editors and the task adder can throw errors if the user provides invalid inputs, or show a success message if a task is edited or added successfully.</p>
+<p>That means we need to wrap them with another component like this (representation again):</p>
+<pre><code>&lt;div id=&quot;app&quot;&gt;
+
+    &lt;app&gt;
+        &lt;notification-area&gt;&lt;/notification-area&gt;
+        &lt;task-list&gt;&lt;/task-list&gt;
+        &lt;task-adder&gt;&lt;/task-adder&gt;
+    &lt;/app&gt;
+
+&lt;/div&gt;
+</code></pre><p>Now, all child components can emit events when something good or bad happens, and <code>App</code> will catch them and pass the message to the <code>NotificationArea</code> component (or clear the existing notification when necessary).</p>
+<hr>
+<p>Check out Mantle on GitHub <a href="https://github.com/nr072/mantle"target="_blank" rel="noopener noreferrer">here</a>
+</p>
+</article>
+</div>
+<div class="article bottom"><section class="article navigation"><p><a class="link" href="/blog/posts/projects/mantle/6-not-just-badges-but-not-badges/"><span class="iconfont icon-article"></span>Part 6: Not just badges, but "NoT" badges!</a></p><p><a class="link" href="/blog/posts/projects/mantle/building-a-todo-list-app-part-4/"><span class="iconfont icon-article"></span>Building a to-do list app (part 4)</a></p></section></div></section><section id="footer"><div class="footer-wrap">
+    <p class="copyright">Coding Harder</p>
+    <p class="powerby"><span>Powered&nbsp;by&nbsp;</span><a href="https://gohugo.io" 
+        target="_blank" rel="noopener noreferrer">Hugo</a><span>&nbsp;&amp;&nbsp;</span><a href="https://themes.gohugo.io/hugo-notepadium/" 
+        target="_blank" rel="noopener noreferrer">Notepadium</a></p></div>
+</section></body>
+
+</html>
